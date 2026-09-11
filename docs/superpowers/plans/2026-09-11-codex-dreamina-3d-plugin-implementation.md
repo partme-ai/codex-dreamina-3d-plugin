@@ -18,6 +18,10 @@
 - Paid submission is delegated and at-most-once.
 - Vendor code and bridge protocols are excluded.
 
+## Foundation baseline completed 2026-09-12
+
+The repository already contains the validated `codex-dreamina-3d` compatibility manifest, URL marketplace entry, Apache-2.0/legal files, transparent brand assets, implementation directories, distribution validator, and RED/GREEN foundation tests. Tasks below must extend these files rather than recreate or overwrite them. Cross-plugin receipts and Blender/Maya-to-Dreamina orchestration remain unimplemented.
+
 ### Task 1: Shared contract conformance
 - [ ] Write failing tests using planned Blender/Maya ArtifactReceipt fixtures.
 - [ ] Define `3d_job` and compatibility schemas plus handoff validator.

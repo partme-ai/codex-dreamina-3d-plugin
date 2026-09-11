@@ -1,0 +1,32 @@
+{
+  "name": "codex-dreamina-3d",
+  "version": "0.1.0",
+  "description": "Orchestrate Blender or Maya preview artifacts into verified Dreamina 3D render videos.",
+  "author": {"name": "Full Stack Skills / PartMe.AI", "url": "https://github.com/partme-ai"},
+  "homepage": "https://github.com/partme-ai/codex-dreamina-3d-plugin",
+  "repository": "https://github.com/partme-ai/codex-dreamina-3d-plugin",
+  "license": "Apache-2.0",
+  "keywords": ["dreamina", "3d", "blender", "maya", "seedance"],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Dreamina 3D",
+    "shortDescription": "Turn DCC previews into Dreamina render videos",
+    "longDescription": "Coordinate validated Blender or Maya preview receipts with Dreamina generation, explicit approval, stable task recovery, and verified Seedance render artifacts.",
+    "developerName": "Full Stack Skills / PartMe.AI",
+    "category": "Creativity",
+    "capabilities": ["Interactive", "Read", "Write"],
+    "websiteURL": "https://github.com/partme-ai/codex-dreamina-3d-plugin",
+    "privacyPolicyURL": "https://github.com/partme-ai/codex-dreamina-3d-plugin/blob/main/PRIVACY.md",
+    "termsOfServiceURL": "https://github.com/partme-ai/codex-dreamina-3d-plugin/blob/main/TERMS.md",
+    "defaultPrompt": [
+      "Create a Dreamina white-model render from this Blender scene",
+      "Create a Seedance render from this Maya Playblast",
+      "Resume my Dreamina 3D task without submitting it again"
+    ],
+    "brandColor": "#7C3AED",
+    "composerIcon": "./assets/composer-icon.png",
+    "logo": "./assets/logo.png",
+    "logoDark": "./assets/logo-dark.png",
+    "screenshots": []
+  }
+}

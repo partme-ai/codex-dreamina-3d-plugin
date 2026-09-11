@@ -1,12 +1,18 @@
 # Codex Dreamina 3D Plugin
 
-> Design-stage orchestration from Blender or Maya preview artifacts to Seedance 2.5.
+<img src="assets/logo.png" alt="Dreamina 3D logo" width="128">
+
+> Compatibility foundation for Blender/Maya-to-Dreamina 3D orchestration.
 
 [English](README.md) | [简体中文](README.zh-CN.md)
 
 ## Status and purpose
 
-`codex-dreamina-3d` is a composition plugin, not a DCC implementation. It will detect `codex-blender` or `codex-maya`, request a validated preview MP4, enrich a Seedance prompt, obtain current Dreamina capabilities and quotation through `codex-dreamina-design`, require explicit approval, submit once, and recover by `submit_id`.
+`codex-dreamina-3d` now has a validated compatibility manifest, marketplace metadata, brand assets, legal documents, tests, and implementation directories. It remains a composition plugin rather than a DCC implementation; cross-plugin handoff workflows are not implemented yet.
+
+## License
+
+Apache-2.0 — see [LICENSE](LICENSE).
 
 ```text
 Blender/Maya scene

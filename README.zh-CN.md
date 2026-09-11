@@ -1,12 +1,18 @@
 # Codex Dreamina 3D 插件
 
-> 从 Blender/Maya 预览产物到 Seedance 2.5 的 Codex 编排插件，目前处于设计阶段。
+<img src="assets/logo.png" alt="Dreamina 3D Logo" width="128">
+
+> 从 Blender/Maya 预览产物到 Dreamina 3D 的 Codex 编排兼容基础。
 
 [English](README.md) | [简体中文](README.zh-CN.md)
 
 ## 状态与定位
 
-`codex-dreamina-3d` 是组合插件，不实现 DCC 内部能力。它将检测 `codex-blender` 或 `codex-maya`，请求已验证预览 MP4，通过 `codex-dreamina-design` 获取当前能力和报价，要求用户明确批准，单次提交，并按 `submit_id` 恢复。
+`codex-dreamina-3d` 现已具备经过验证的兼容 manifest、Marketplace 元数据、品牌资产、Legal 文档、测试和实施目录。它仍是组合插件而不是 DCC 实现；跨插件交接工作流尚未实现。
+
+## 许可证
+
+Apache-2.0，见 [LICENSE](LICENSE)。
 
 ```text
 Blender/Maya 场景
