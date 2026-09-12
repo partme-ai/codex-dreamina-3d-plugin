@@ -120,6 +120,47 @@ class GitDiffCheckTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
 
 
+class VersionContractTests(unittest.TestCase):
+    """The manifest version must be strict semver and keep the 0.1.0 base,
+    while still allowing the Codex local-development cachebuster suffix that
+    the documented update loop requires."""
+
+    def _validate_with_version(self, version: str) -> list[str]:
+        import shutil
+        import sys
+        import tempfile
+
+        sys.path.insert(0, str(ROOT / "scripts"))
+        from validate_distribution import validate  # noqa: PLC0415
+
+        with tempfile.TemporaryDirectory() as tmp:
+            clone = Path(tmp) / "plug"
+            shutil.copytree(ROOT, clone, ignore=shutil.ignore_patterns(".git", "__pycache__"))
+            manifest_path = clone / ".codex-plugin" / "plugin.json"
+            import json as _json
+            data = _json.loads(manifest_path.read_text())
+            data["version"] = version
+            manifest_path.write_text(_json.dumps(data, indent=2))
+            return validate(clone)
+
+    def test_repo_declares_strict_semver_base(self) -> None:
+        import json
+        version = json.loads((ROOT / ".codex-plugin" / "plugin.json").read_text())["version"]
+        self.assertEqual(version, "0.1.0")
+
+    def test_cachebuster_version_is_accepted(self) -> None:
+        errors = self._validate_with_version("0.1.0+codex.20260912062630")
+        self.assertEqual(errors, [], errors)
+
+    def test_non_semver_version_is_rejected(self) -> None:
+        errors = self._validate_with_version("v1")
+        self.assertTrue(any("strict semver" in e for e in errors), errors)
+
+    def test_wrong_base_version_is_rejected(self) -> None:
+        errors = self._validate_with_version("0.2.0")
+        self.assertTrue(any("base version" in e for e in errors), errors)
+
+
 class OfflineVerificationDocTests(unittest.TestCase):
     def test_offline_md_lists_three_runtime_blind_spots(self) -> None:
         text = (ROOT / "docs" / "verification" / "offline.md").read_text()

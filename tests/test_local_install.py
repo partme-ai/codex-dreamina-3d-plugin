@@ -119,6 +119,53 @@ class MarketplaceRegistrationTests(unittest.TestCase):
             self.assertNotIn(str(Path.home()), result["entry"]["source"]["path"])
 
 
+class CachebusterTests(unittest.TestCase):
+    """The documented local-iteration loop requires a cachebuster suffix:
+    <base-version>+codex.<token>, replacing any existing cachebuster."""
+
+    def setUp(self) -> None:
+        import tempfile
+        self._tmp = tempfile.TemporaryDirectory()
+        src = ROOT / ".codex-plugin" / "plugin.json"
+        dst_dir = Path(self._tmp.name) / ".codex-plugin"
+        dst_dir.mkdir(parents=True)
+        (dst_dir / "plugin.json").write_text(src.read_text())
+        self.plugin_dir = Path(self._tmp.name)
+
+    def tearDown(self) -> None:
+        self._tmp.cleanup()
+
+    def _version(self) -> str:
+        return json.loads((self.plugin_dir / ".codex-plugin" / "plugin.json").read_text())["version"]
+
+    def test_cachebuster_appends_codex_suffix(self) -> None:
+        version = local_install.bump_cachebuster(self.plugin_dir, "local-20260912-120000")
+        self.assertEqual(version, "0.1.0+codex.local-20260912-120000")
+        self.assertEqual(self._version(), version)
+
+    def test_cachebuster_replaces_existing_token(self) -> None:
+        local_install.bump_cachebuster(self.plugin_dir, "local-first")
+        version = local_install.bump_cachebuster(self.plugin_dir, "local-second")
+        self.assertEqual(version, "0.1.0+codex.local-second")
+        self.assertEqual(self._version().count("+"), 1)
+
+    def test_cachebuster_default_token_is_timestamped(self) -> None:
+        version = local_install.bump_cachebuster(self.plugin_dir)
+        self.assertTrue(version.startswith("0.1.0+codex.local-"), version)
+
+    def test_cachebuster_version_remains_strict_semver(self) -> None:
+        version = local_install.bump_cachebuster(self.plugin_dir, "abc")
+        self.assertRegex(version, r"^0\.1\.0\+[0-9A-Za-z.-]+$")
+
+    def test_cachebuster_preserves_prerelease_base(self) -> None:
+        manifest_path = self.plugin_dir / ".codex-plugin" / "plugin.json"
+        data = json.loads(manifest_path.read_text())
+        data["version"] = "1.2.3-beta.1+codex.old"
+        manifest_path.write_text(json.dumps(data))
+        version = local_install.bump_cachebuster(self.plugin_dir, "new")
+        self.assertEqual(version, "1.2.3-beta.1+codex.new")
+
+
 class CodexCliTests(unittest.TestCase):
     """The CLI half of the install is asserted only when Codex is present."""
 

@@ -10,6 +10,16 @@ import sys
 from pathlib import Path
 
 NAME_PATTERN = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
+# Strict semver, per the Codex plugin contract. The optional build metadata
+# suffix carries Codex's local-development cachebuster (see
+# `plugin-creator/references/installing-and-updating.md`), e.g.
+# `0.1.0+codex.20260912062630`.
+SEMVER_RE = re.compile(
+    r"^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)"
+    r"(?:-(?:0|[1-9]\d*|\d*[A-Za-z-][0-9A-Za-z-]*)(?:\.(?:0|[1-9]\d*|\d*[A-Za-z-][0-9A-Za-z-]*))*)?"
+    r"(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$"
+)
+FOUNDATION_BASE_VERSION = "0.1.0"
 SECRET_PATTERNS = (
     re.compile(rb"AIza[0-9A-Za-z_-]{20,}"),
     re.compile(rb"-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----"),
@@ -29,6 +39,12 @@ REQUIRED_DIRECTORIES = ("assets", "skills", "schemas", "scripts", "tests")
 
 def load_json(target: Path) -> dict:
     return json.loads(target.read_text(encoding="utf-8"))
+
+
+def version_base(version: str) -> str:
+    """Strip any build metadata so a Codex cachebuster suffix does not fail the
+    foundation check: ``0.1.0+codex.20260912`` -> ``0.1.0``."""
+    return version.split("+", 1)[0]
 
 
 def png_shape(target: Path) -> tuple[int, int, int]:
@@ -55,8 +71,10 @@ def validate(root: Path) -> list[str]:
     repository = manifest.get("repository", "")
     if NAME_PATTERN.fullmatch(plugin_id) is None or not plugin_id.startswith("codex-"):
         errors.append("manifest name must be a codex-prefixed kebab-case identifier")
-    if manifest.get("version") != "0.1.0":
-        errors.append("foundation version must be 0.1.0")
+    if SEMVER_RE.fullmatch(str(manifest.get("version", ""))) is None:
+        errors.append("manifest version must be strict semver")
+    elif version_base(manifest["version"]) != FOUNDATION_BASE_VERSION:
+        errors.append(f"foundation base version must be {FOUNDATION_BASE_VERSION}")
     if manifest.get("skills") != "./skills/":
         errors.append("manifest skills path must be ./skills/")
     if "mcpServers" in manifest or (root / ".mcp.json").exists():

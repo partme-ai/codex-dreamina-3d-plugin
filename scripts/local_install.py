@@ -64,6 +64,29 @@ def relative_to_home(path: Path) -> str:
         return str(path.resolve())
 
 
+def bump_cachebuster(plugin_dir: Path, cachebuster: str | None = None) -> str:
+    """Apply the Codex local-development cachebuster to the manifest version.
+
+    Implements the documented policy
+    (``plugin-creator/references/installing-and-updating.md``):
+
+        <base-version>+codex.<cachebuster>
+
+    The base version is everything before ``+``; an existing cachebuster is
+    replaced rather than appended. Returns the new version string.
+    """
+    from datetime import datetime, timezone
+
+    manifest_path = plugin_dir / ".codex-plugin" / "plugin.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    base = str(manifest["version"]).split("+", 1)[0]
+    token = cachebuster or datetime.now(timezone.utc).strftime("local-%Y%m%d-%H%M%S")
+    version = f"{base}+codex.{token}"
+    manifest["version"] = version
+    manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+    return version
+
+
 def read_marketplace() -> dict:
     if not MARKETPLACE_PATH.is_file():
         return {
@@ -129,6 +152,17 @@ def main() -> int:
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--register-only", action="store_true", help="skip the Codex CLI install step")
     parser.add_argument("--verify", action="store_true", help="only report current install status")
+    parser.add_argument(
+        "--cachebuster",
+        nargs="?",
+        const="",
+        default=None,
+        help=(
+            "bump the manifest version to <base>+codex.<token> so Codex picks up "
+            "local edits (default token: UTC timestamp); omit the flag to leave "
+            "the version alone"
+        ),
+    )
     args = parser.parse_args()
 
     cli = find_cli()
@@ -144,6 +178,12 @@ def main() -> int:
                 return 0
         print(f"{PLUGIN_NAME} not listed by Codex CLI", file=sys.stderr)
         return 1
+
+    if args.cachebuster is not None:
+        new_version = bump_cachebuster(
+            Path(args.plugin_dir), args.cachebuster or None
+        )
+        print(json.dumps({"cachebuster_version": new_version}, indent=2))
 
     result = register(plugin_dir=Path(args.plugin_dir), policy=args.policy, dry_run=args.dry_run)
     print(json.dumps(result, indent=2))
