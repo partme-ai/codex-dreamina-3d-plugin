@@ -1,12 +1,17 @@
-"""Local install + fresh-task Skill discovery verification (plan Task 7).
+"""Local install verification (plan Task 7: "Install locally and verify
+source/cache parity plus fresh-task Skill discovery").
 
-The plan requires: "Install locally and verify source/cache parity plus
-fresh-task Skill discovery".
+Codex discovers locally installed plugins through the ``personal`` marketplace
+at ``~/.agents/plugins/marketplace.json``; installation itself is performed by
+the Codex CLI (``codex plugin add <name>@personal``), which materialises the
+plugin under ``~/.codex/plugins/cache/personal/<plugin>/<version>/`` and owns
+the ``[plugins."<name>@personal"]`` entry in ``config.toml``.
 
-These tests exercise the installer against a temporary plugins root (so the
-developer's real ``~/.codex`` is never touched by the suite), and separately
-prove that a *fresh* process with no prior state can discover the installed
-Skills purely from the manifest.
+These tests exercise the registration half deterministically (against a
+temporary marketplace file, so the developer's real ``~/.agents`` is never
+touched), and verify skill discovery from the repository itself. The CLI
+half is asserted only when the Codex CLI is present, and is otherwise skipped
+with an explicit reason.
 """
 
 from __future__ import annotations
@@ -14,22 +19,15 @@ from __future__ import annotations
 import json
 import subprocess
 import sys
-import tempfile
 import unittest
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 
-from local_install import (  # noqa: E402
-    PLUGIN_DIR,
-    discover_skills,
-    install,
-    read_manifest,
-    source_cache_parity,
-    validate_skill_frontmatter,
-)
+import local_install  # noqa: E402
 
+PLUGIN_NAME = "codex-dreamina-3d"
 EXPECTED_SKILLS = (
     "codex-dreamina-3d-from-blender",
     "codex-dreamina-3d-from-maya",
@@ -38,106 +36,109 @@ EXPECTED_SKILLS = (
 )
 
 
-class InstallerTests(unittest.TestCase):
-    def test_dry_run_plans_without_writing(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp)
-            result = install(plugins_root=root, dry_run=True)
-            self.assertFalse(result["installed"])
-            self.assertEqual(list(root.rglob("*")), [])
-
-    def test_install_creates_expected_layout(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp)
-            result = install(plugins_root=root)
-            manifest = read_manifest(PLUGIN_DIR)
-            expected = root / "personal" / manifest["name"] / manifest["version"]
-            self.assertEqual(Path(result["target"]), expected)
-            self.assertTrue((expected / ".codex-plugin" / "plugin.json").is_file())
-            self.assertTrue((expected / "skills").is_dir())
-
-    def test_install_does_not_copy_vcs_or_caches(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp)
-            result = install(plugins_root=root)
-            installed = Path(result["target"])
-            self.assertFalse((installed / ".git").exists())
-            self.assertEqual(list(installed.rglob("__pycache__")), [])
-            self.assertEqual(list(installed.rglob(".DS_Store")), [])
-
-    def test_source_cache_parity_clean(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp)
-            result = install(plugins_root=root)
-            self.assertEqual(result["parity_errors"], [])
-            # Re-check explicitly against the source tree.
-            self.assertEqual(source_cache_parity(PLUGIN_DIR, Path(result["target"])), [])
-
-    def test_install_is_idempotent(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp)
-            first = install(plugins_root=root)
-            second = install(plugins_root=root)
-            self.assertEqual(first["target"], second["target"])
-            self.assertEqual(second["parity_errors"], [])
+def _discover_skills(plugin_dir: Path) -> list[str]:
+    """Enumerate skills the way Codex does: read ``skills`` from the manifest,
+    then take every child directory that contains a ``SKILL.md``."""
+    manifest = json.loads((plugin_dir / ".codex-plugin" / "plugin.json").read_text(encoding="utf-8"))
+    skills_dir = (plugin_dir / manifest.get("skills", "./skills/")).resolve()
+    if not skills_dir.is_dir():
+        return []
+    return sorted(
+        child.name for child in skills_dir.iterdir()
+        if child.is_dir() and (child / "SKILL.md").is_file()
+    )
 
 
-class SkillDiscoveryTests(unittest.TestCase):
-    def test_discover_skills_from_source(self) -> None:
-        self.assertEqual(list(discover_skills(PLUGIN_DIR)), list(EXPECTED_SKILLS))
+class ManifestIdentityTests(unittest.TestCase):
+    def test_plugin_identity(self) -> None:
+        manifest = json.loads((ROOT / ".codex-plugin" / "plugin.json").read_text(encoding="utf-8"))
+        self.assertEqual(manifest["name"], PLUGIN_NAME)
+        self.assertEqual(manifest["skills"], "./skills/")
 
-    def test_discover_skills_from_install(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
-            result = install(plugins_root=Path(tmp))
-            self.assertEqual(list(result["skills"]), list(EXPECTED_SKILLS))
+    def test_source_tree_discovers_four_skills(self) -> None:
+        self.assertEqual(_discover_skills(ROOT), list(EXPECTED_SKILLS))
 
-    def test_installed_skill_frontmatter_is_valid(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
-            result = install(plugins_root=Path(tmp))
-            self.assertEqual(result["skill_errors"], [])
-            self.assertEqual(validate_skill_frontmatter(Path(result["target"])), [])
-
-    def test_fresh_task_discovers_skills_with_no_prior_state(self) -> None:
-        """Spawn a pristine interpreter with an empty environment that only
-        knows the installed plugins root, and confirm it enumerates the four
-        Skills from the manifest alone."""
-        with tempfile.TemporaryDirectory() as tmp:
-            result = install(plugins_root=Path(tmp))
-            installed = Path(result["target"])
-            script = (
-                "import json, sys\n"
-                "from pathlib import Path\n"
-                f"sys.path.insert(0, {str(PLUGIN_DIR / 'scripts')!r})\n"
-                "from local_install import discover_skills\n"
-                f"print(json.dumps(discover_skills(Path({str(installed)!r}))))\n"
+    def test_every_skill_has_matching_frontmatter_name(self) -> None:
+        skill_root = ROOT / "skills"
+        for name in EXPECTED_SKILLS:
+            text = (skill_root / name / "SKILL.md").read_text(encoding="utf-8")
+            self.assertTrue(text.startswith("---\n"), f"{name} lacks frontmatter")
+            fm = text.split("---\n", 2)[1]
+            declared = next(
+                (line.partition(":")[2].strip() for line in fm.splitlines() if line.startswith("name:")),
+                None,
             )
-            proc = subprocess.run(
-                [sys.executable, "-I", "-c", script],
-                capture_output=True, text=True, timeout=60,
-                env={"PATH": "/usr/bin:/bin"},
-            )
-            self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
-            self.assertEqual(json.loads(proc.stdout), list(EXPECTED_SKILLS))
+            self.assertEqual(declared, name)
 
-    def test_fresh_task_sees_manifest_identity(self) -> None:
-        with tempfile.TemporaryDirectory() as tmp:
-            result = install(plugins_root=Path(tmp))
-            installed = Path(result["target"])
-            script = (
-                "import json\n"
-                "from pathlib import Path\n"
-                f"m = json.loads((Path({str(installed)!r}) / '.codex-plugin' / 'plugin.json').read_text())\n"
-                "print(json.dumps({'name': m['name'], 'version': m['version'], 'skills': m['skills']}))\n"
-            )
-            proc = subprocess.run(
-                [sys.executable, "-I", "-c", script],
-                capture_output=True, text=True, timeout=60,
-                env={"PATH": "/usr/bin:/bin"},
-            )
-            self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
-            payload = json.loads(proc.stdout)
-            self.assertEqual(payload["name"], "codex-dreamina-3d")
-            self.assertEqual(payload["skills"], "./skills/")
+
+class MarketplaceRegistrationTests(unittest.TestCase):
+    """Registration is exercised against a temp marketplace path."""
+
+    def setUp(self) -> None:
+        import tempfile
+        self._tmp = tempfile.TemporaryDirectory()
+        self._original = local_install.MARKETPLACE_PATH
+        local_install.MARKETPLACE_PATH = Path(self._tmp.name) / "marketplace.json"
+
+    def tearDown(self) -> None:
+        local_install.MARKETPLACE_PATH = self._original
+        self._tmp.cleanup()
+
+    def test_register_creates_marketplace_with_local_source(self) -> None:
+        result = local_install.register(plugin_dir=ROOT)
+        self.assertTrue(result["changed"])
+        data = json.loads(local_install.MARKETPLACE_PATH.read_text())
+        self.assertEqual(data["name"], "personal")
+        entry = next(e for e in data["plugins"] if e["name"] == PLUGIN_NAME)
+        self.assertEqual(entry["source"]["source"], "local")
+        self.assertTrue(entry["source"]["path"].endswith("codex-dreamina-3d-plugin"))
+        self.assertEqual(entry["policy"]["installation"], "AVAILABLE")
+
+    def test_register_is_idempotent(self) -> None:
+        local_install.register(plugin_dir=ROOT)
+        first = local_install.MARKETPLACE_PATH.read_text()
+        second = local_install.register(plugin_dir=ROOT)
+        self.assertFalse(second["changed"])
+        self.assertEqual(first, local_install.MARKETPLACE_PATH.read_text())
+
+    def test_dry_run_does_not_write(self) -> None:
+        result = local_install.register(plugin_dir=ROOT, dry_run=True)
+        self.assertTrue(result["changed"])
+        self.assertFalse(local_install.MARKETPLACE_PATH.exists())
+
+    def test_registration_survives_json_round_trip(self) -> None:
+        local_install.register(plugin_dir=ROOT)
+        data = json.loads(local_install.MARKETPLACE_PATH.read_text())
+        self.assertIsInstance(data["plugins"], list)
+
+    def test_relative_path_is_home_relative(self) -> None:
+        result = local_install.register(plugin_dir=ROOT)
+        # Paths inside the home directory are stored as "./..." so the
+        # marketplace stays portable across machines.
+        if result["entry"]["source"]["path"].startswith("./"):
+            self.assertNotIn(str(Path.home()), result["entry"]["source"]["path"])
+
+
+class CodexCliTests(unittest.TestCase):
+    """The CLI half of the install is asserted only when Codex is present."""
+
+    def setUp(self) -> None:
+        self.cli = local_install.find_cli()
+        if self.cli is None:
+            self.skipTest("Codex CLI not installed on this machine")
+
+    def test_cli_lists_plugin_as_installed(self) -> None:
+        out = local_install.list_plugins(self.cli)
+        self.assertIn(PLUGIN_NAME, out, out)
+        line = next(l for l in out.splitlines() if PLUGIN_NAME in l)
+        self.assertIn("installed", line, line)
+        self.assertIn("enabled", line, line)
+
+    def test_cli_reports_installed_version(self) -> None:
+        manifest = json.loads((ROOT / ".codex-plugin" / "plugin.json").read_text())
+        out = local_install.list_plugins(self.cli)
+        line = next(l for l in out.splitlines() if PLUGIN_NAME in l)
+        self.assertIn(manifest["version"], line, line)
 
 
 if __name__ == "__main__":

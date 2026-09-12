@@ -1,165 +1,172 @@
 #!/usr/bin/env python3
-"""Install codex-dreamina-3d into a local Codex plugins root.
+"""Register / install codex-dreamina-3d into a local Codex setup.
 
-Mirrors the layout Codex uses for locally installed plugins:
+Codex discovers locally installed plugins through a *marketplace* file:
 
-    <plugins-root>/personal/<plugin-name>/<version>/...
+    ~/.agents/plugins/marketplace.json      ("personal" marketplace)
 
-The installer copies the plugin tree (excluding VCS, caches, and OS noise),
-then verifies:
+Each entry points at a local checkout, and installation is performed by the
+Codex CLI, which materialises the plugin under:
 
-  1. the installed manifest parses and still declares ``name``/``version``;
-  2. every skill directory under ``skills/`` carries a ``SKILL.md`` whose
-     frontmatter ``name`` matches the directory name;
-  3. source/cache parity — every installed file hashes identically to its
-     source counterpart.
+    ~/.codex/plugins/cache/<marketplace>/<plugin>/<version>/
+    ...and writes [plugins."<plugin>@<marketplace>"] enabled = true
+       into ~/.codex/config.toml
 
-Use ``--dry-run`` to report the plan without touching disk.
+So the canonical install is two steps:
+
+    1. register  — add this repository to the personal marketplace
+    2. install   — `codex plugin add codex-dreamina-3d@personal`
+
+This script performs step 1 (idempotently) and, when the Codex CLI can be
+located, step 2 as well. It never edits ``config.toml`` by hand: the CLI owns
+that file, and hand-written entries are not recognised as installed plugins.
+
+Verification after install:
+
+    python3 scripts/local_install.py --verify
 """
 
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
-import re
 import shutil
+import subprocess
 import sys
 from pathlib import Path
 
 PLUGIN_DIR = Path(__file__).resolve().parents[1]
-EXCLUDED_DIRS = {".git", "__pycache__", ".pytest_cache", ".cache", "node_modules", "build", "dist"}
-EXCLUDED_FILES = {".DS_Store"}
-DEFAULT_ROOT = Path("~/.codex/plugins/cache").expanduser()
-FRONTMATTER_RE = re.compile(r"^---\n(.*?)\n---\n", re.DOTALL)
+PLUGIN_NAME = "codex-dreamina-3d"
+
+MARKETPLACE_PATH = Path.home() / ".agents" / "plugins" / "marketplace.json"
+MARKETPLACE_NAME = "personal"
+
+# Codex ships inside the ChatGPT desktop app on macOS.
+CLI_CANDIDATES = (
+    Path("/Applications/ChatGPT.app/Contents/Resources/codex"),
+    Path("/Applications/Codex.app/Contents/Resources/codex"),
+)
 
 
-def sha256_of(path: Path) -> str:
-    h = hashlib.sha256()
-    with path.open("rb") as fh:
-        for chunk in iter(lambda: fh.read(65536), b""):
-            h.update(chunk)
-    return h.hexdigest()
+def find_cli() -> Path | None:
+    for candidate in CLI_CANDIDATES:
+        if candidate.is_file():
+            return candidate
+    found = shutil.which("codex")
+    return Path(found) if found else None
 
 
-def _ignore(directory: str, names: list[str]) -> set[str]:
-    ignored: set[str] = set()
-    for name in names:
-        if name in EXCLUDED_DIRS or name in EXCLUDED_FILES:
-            ignored.add(name)
-    return ignored
+def relative_to_home(path: Path) -> str:
+    """Marketplace paths are written relative to the user's home directory."""
+    try:
+        return "./" + str(path.resolve().relative_to(Path.home()))
+    except ValueError:
+        return str(path.resolve())
 
 
-def read_manifest(root: Path) -> dict:
-    return json.loads((root / ".codex-plugin" / "plugin.json").read_text(encoding="utf-8"))
+def read_marketplace() -> dict:
+    if not MARKETPLACE_PATH.is_file():
+        return {
+            "name": MARKETPLACE_NAME,
+            "interface": {"displayName": "Personal"},
+            "plugins": [],
+        }
+    return json.loads(MARKETPLACE_PATH.read_text(encoding="utf-8"))
 
 
-def discover_skills(root: Path) -> list[str]:
-    """Enumerate skills the way Codex does: read ``skills`` from the manifest,
-    then take every child directory that contains a ``SKILL.md``."""
-    manifest = read_manifest(root)
-    skills_rel = manifest.get("skills", "./skills/")
-    skills_dir = (root / skills_rel).resolve()
-    if not skills_dir.is_dir():
-        return []
-    found: list[str] = []
-    for child in sorted(skills_dir.iterdir()):
-        if child.is_dir() and (child / "SKILL.md").is_file():
-            found.append(child.name)
-    return found
-
-
-def validate_skill_frontmatter(root: Path) -> list[str]:
-    """Return a list of error strings for any skill whose frontmatter is
-    missing or whose ``name`` does not match its directory."""
-    errors: list[str] = []
-    manifest = read_manifest(root)
-    skills_dir = (root / manifest.get("skills", "./skills/")).resolve()
-    if not skills_dir.is_dir():
-        return [f"skills directory missing: {skills_dir}"]
-    for child in sorted(skills_dir.iterdir()):
-        if not child.is_dir():
-            continue
-        skill_md = child / "SKILL.md"
-        if not skill_md.is_file():
-            errors.append(f"{child.name}: no SKILL.md")
-            continue
-        text = skill_md.read_text(encoding="utf-8")
-        match = FRONTMATTER_RE.match(text)
-        if not match:
-            errors.append(f"{child.name}: missing YAML frontmatter")
-            continue
-        name_field = None
-        for line in match.group(1).splitlines():
-            if line.startswith("name:"):
-                name_field = line.partition(":")[2].strip()
-                break
-        if name_field != child.name:
-            errors.append(f"{child.name}: frontmatter name {name_field!r} != directory name")
-    return errors
-
-
-def source_cache_parity(source: Path, installed: Path) -> list[str]:
-    """Return a list of mismatches between the source tree and the installed tree."""
-    mismatches: list[str] = []
-    for src in sorted(source.rglob("*")):
-        rel = src.relative_to(source)
-        if any(part in EXCLUDED_DIRS for part in rel.parts) or src.name in EXCLUDED_FILES:
-            continue
-        if not src.is_file():
-            continue
-        dst = installed / rel
-        if not dst.is_file():
-            mismatches.append(f"missing in install: {rel}")
-            continue
-        if sha256_of(src) != sha256_of(dst):
-            mismatches.append(f"hash mismatch: {rel}")
-    return mismatches
-
-
-def install(
-    *,
-    source: Path = PLUGIN_DIR,
-    plugins_root: Path = DEFAULT_ROOT,
-    source_name: str = "personal",
-    dry_run: bool = False,
-) -> dict:
-    manifest = read_manifest(source)
-    name = manifest["name"]
-    version = manifest["version"]
-    target = plugins_root / source_name / name / version
-
-    if dry_run:
-        return {"target": str(target), "installed": False, "manifest": manifest}
-
-    if target.exists():
-        shutil.rmtree(target)
-    target.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copytree(source, target, ignore=_ignore)
-
-    skill_errors = validate_skill_frontmatter(target)
-    parity_errors = source_cache_parity(source, target)
+def entry_for(plugin_dir: Path, policy: str) -> dict:
     return {
-        "target": str(target),
-        "installed": True,
-        "manifest": manifest,
-        "skills": discover_skills(target),
-        "skill_errors": skill_errors,
-        "parity_errors": parity_errors,
+        "name": PLUGIN_NAME,
+        "source": {"source": "local", "path": relative_to_home(plugin_dir)},
+        "policy": {"installation": "AVAILABLE", "authentication": policy},
+        "category": "Creativity",
     }
 
 
+def register(
+    *, plugin_dir: Path = PLUGIN_DIR, policy: str = "ON_INSTALL", dry_run: bool = False
+) -> dict:
+    data = read_marketplace()
+    entries = data.setdefault("plugins", [])
+    existing = next((e for e in entries if e.get("name") == PLUGIN_NAME), None)
+    desired = entry_for(plugin_dir, policy)
+
+    if existing == desired:
+        return {"marketplace": str(MARKETPLACE_PATH), "changed": False, "entry": desired}
+
+    if dry_run:
+        return {"marketplace": str(MARKETPLACE_PATH), "changed": True, "entry": desired, "dry_run": True}
+
+    if existing is not None:
+        entries[entries.index(existing)] = desired
+    else:
+        entries.append(desired)
+
+    MARKETPLACE_PATH.parent.mkdir(parents=True, exist_ok=True)
+    MARKETPLACE_PATH.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+    return {"marketplace": str(MARKETPLACE_PATH), "changed": True, "entry": desired}
+
+
+def install_via_cli(cli: Path, marketplace: str = MARKETPLACE_NAME) -> tuple[int, str]:
+    proc = subprocess.run(
+        [str(cli), "plugin", "add", f"{PLUGIN_NAME}@{marketplace}"],
+        capture_output=True, text=True, timeout=300,
+    )
+    return proc.returncode, (proc.stdout + proc.stderr).strip()
+
+
+def list_plugins(cli: Path) -> str:
+    proc = subprocess.run(
+        [str(cli), "plugin", "list"], capture_output=True, text=True, timeout=120
+    )
+    return proc.stdout
+
+
 def main() -> int:
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--root", default=str(DEFAULT_ROOT), help="plugins cache root")
-    parser.add_argument("--source-name", default="personal", help="cache namespace (personal / local)")
+    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument("--plugin-dir", default=str(PLUGIN_DIR))
+    parser.add_argument("--policy", default="ON_INSTALL", choices=["ON_INSTALL", "ON_USE"])
     parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument("--register-only", action="store_true", help="skip the Codex CLI install step")
+    parser.add_argument("--verify", action="store_true", help="only report current install status")
     args = parser.parse_args()
 
-    result = install(plugins_root=Path(args.root).expanduser(), source_name=args.source_name, dry_run=args.dry_run)
-    print(json.dumps(result, indent=2, sort_keys=True))
-    if result.get("skill_errors") or result.get("parity_errors"):
+    cli = find_cli()
+
+    if args.verify:
+        if cli is None:
+            print("Codex CLI not found; cannot verify install status", file=sys.stderr)
+            return 1
+        out = list_plugins(cli)
+        for line in out.splitlines():
+            if PLUGIN_NAME in line:
+                print(line.strip())
+                return 0
+        print(f"{PLUGIN_NAME} not listed by Codex CLI", file=sys.stderr)
         return 1
+
+    result = register(plugin_dir=Path(args.plugin_dir), policy=args.policy, dry_run=args.dry_run)
+    print(json.dumps(result, indent=2))
+    if args.dry_run:
+        return 0
+
+    if args.register_only or cli is None:
+        if cli is None:
+            print(
+                "\nCodex CLI not found. Run this once Codex is installed:\n"
+                f"    codex plugin add {PLUGIN_NAME}@{MARKETPLACE_NAME}",
+                file=sys.stderr,
+            )
+        return 0
+
+    code, output = install_via_cli(cli)
+    print(output)
+    if code != 0:
+        return code
+
+    for line in list_plugins(cli).splitlines():
+        if PLUGIN_NAME in line:
+            print(f"\nverified: {line.strip()}")
     return 0
 
 
