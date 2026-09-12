@@ -1,0 +1,279 @@
+"""End-to-end job ledger for codex-dreamina-3d.
+
+The ledger enforces the state machine defined in
+docs/Codex-Dreamina-3D-Plugin-Architecture.md and the spec:
+
+  Draft -> DccSelected -> PreviewSpecified -> PreviewValidated ->
+  CapabilityResolved -> Quoted -> Approved -> Submitted -> Querying ->
+  Completed | Failed | Unknown
+
+Updates are atomic (write-to-temp + fsync + os.replace) with a monotonic
+revision. Only non-secret IDs, hashes, states, timestamps, and error
+categories are stored; any attempt to transition through an illegal edge or
+to change a quote-binding field without invalidating the quote is rejected
+closed.
+"""
+
+from __future__ import annotations
+
+import json
+import os
+import re
+import tempfile
+from dataclasses import dataclass
+from datetime import datetime, timezone
+from enum import Enum
+from pathlib import Path
+from typing import Any, Mapping
+
+SCHEMA_VERSION = "1.0.0"
+SHA256_PATTERN = re.compile(r"^[0-9a-f]{64}$")
+FORBIDDEN_KEYS = {"token", "api_key", "apikey", "password", "secret", "authorization", "credit_card"}
+
+
+class JobState(str, Enum):
+    DRAFT = "Draft"
+    DCC_SELECTED = "DccSelected"
+    PREVIEW_SPECIFIED = "PreviewSpecified"
+    PREVIEW_VALIDATED = "PreviewValidated"
+    CAPABILITY_RESOLVED = "CapabilityResolved"
+    QUOTED = "Quoted"
+    APPROVED = "Approved"
+    SUBMITTED = "Submitted"
+    QUERYING = "Querying"
+    COMPLETED = "Completed"
+    FAILED = "Failed"
+    UNKNOWN = "Unknown"
+
+
+# State machine: who is allowed to transition where.
+ALLOWED_TRANSITIONS: dict[JobState, frozenset[JobState]] = {
+    JobState.DRAFT: frozenset({JobState.DCC_SELECTED, JobState.FAILED}),
+    JobState.DCC_SELECTED: frozenset({JobState.PREVIEW_SPECIFIED, JobState.FAILED}),
+    JobState.PREVIEW_SPECIFIED: frozenset({JobState.PREVIEW_VALIDATED, JobState.FAILED}),
+    JobState.PREVIEW_VALIDATED: frozenset({JobState.CAPABILITY_RESOLVED, JobState.PREVIEW_SPECIFIED, JobState.FAILED}),
+    JobState.CAPABILITY_RESOLVED: frozenset({JobState.QUOTED, JobState.FAILED}),
+    JobState.QUOTED: frozenset({JobState.APPROVED, JobState.PREVIEW_VALIDATED, JobState.FAILED}),
+    JobState.APPROVED: frozenset({JobState.SUBMITTED, JobState.PREVIEW_VALIDATED, JobState.FAILED}),
+    JobState.SUBMITTED: frozenset({JobState.QUERYING, JobState.UNKNOWN, JobState.FAILED}),
+    JobState.QUERYING: frozenset({JobState.COMPLETED, JobState.UNKNOWN, JobState.FAILED, JobState.SUBMITTED}),
+    JobState.COMPLETED: frozenset(),
+    JobState.FAILED: frozenset(),
+    JobState.UNKNOWN: frozenset({JobState.QUERYING, JobState.FAILED}),
+}
+
+
+class InvalidTransitionError(RuntimeError):
+    pass
+
+
+class StaleReceiptError(RuntimeError):
+    pass
+
+
+class LedgerCorruptError(RuntimeError):
+    pass
+
+
+@dataclass(frozen=True)
+class QuoteInputs:
+    prompt: str
+    model: str
+    resolution: str
+    ratio: str
+    duration_seconds: float
+    reference_artifact_ids: tuple[str, ...] = ()
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "prompt": self.prompt,
+            "model": self.model,
+            "resolution": self.resolution,
+            "ratio": self.ratio,
+            "duration_seconds": self.duration_seconds,
+            "reference_artifact_ids": list(self.reference_artifact_ids),
+        }
+
+
+def _utcnow() -> str:
+    return datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+
+
+def _now() -> datetime:
+    return datetime.now(timezone.utc)
+
+
+def _scrub(value: Any) -> None:
+    """Walk a value and raise LedgerCorruptError if any forbidden key is present."""
+    if isinstance(value, dict):
+        for k, v in value.items():
+            if k.lower() in FORBIDDEN_KEYS:
+                raise LedgerCorruptError(f"forbidden key in ledger payload: {k!r}")
+            _scrub(v)
+    elif isinstance(value, list):
+        for item in value:
+            _scrub(item)
+
+
+def _atomic_write(path: Path, payload: dict) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fd, tmp_path = tempfile.mkstemp(prefix=path.name + ".", dir=str(path.parent))
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as fh:
+            json.dump(payload, fh, indent=2, sort_keys=True)
+            fh.flush()
+            os.fsync(fh.fileno())
+        os.replace(tmp_path, path)
+    except Exception:
+        try:
+            os.unlink(tmp_path)
+        except OSError:
+            pass
+        raise
+
+
+def new_job(job_id: str) -> dict:
+    if not re.match(r"^[a-z0-9][a-z0-9_-]{2,63}$", job_id):
+        raise ValueError("job_id must be a lowercase kebab-case identifier")
+    now = _utcnow()
+    return {
+        "schema_version": SCHEMA_VERSION,
+        "job_id": job_id,
+        "state": JobState.DRAFT.value,
+        "revision": 1,
+        "created_at": now,
+        "updated_at": now,
+        "selected_companion": None,
+        "preview": None,
+        "quote_inputs": None,
+        "quote": None,
+        "approval": None,
+        "submit": None,
+        "result": None,
+        "error_category": None,
+        "history": [],
+    }
+
+
+def load_ledger(path: Path) -> dict:
+    """Load and structurally validate a ledger file. Raises on corruption."""
+    raw = path.read_text(encoding="utf-8")
+    payload = json.loads(raw)  # may raise JSONDecodeError
+    if not isinstance(payload, dict):
+        raise LedgerCorruptError("ledger root must be an object")
+    for required in ("schema_version", "job_id", "state", "revision"):
+        if required not in payload:
+            raise LedgerCorruptError(f"missing ledger field: {required}")
+    if payload["schema_version"] != SCHEMA_VERSION:
+        raise LedgerCorruptError(f"unsupported ledger schema_version: {payload['schema_version']!r}")
+    _scrub(payload)
+    return payload
+
+
+class JobLedger:
+    """A read/write handle to a job ledger file.
+
+    All writes go through ``write``/``transition``; both perform atomic
+    replace. ``transition`` checks the state-machine edges.
+    """
+
+    def __init__(self, path: Path) -> None:
+        self.path = path
+
+    def read(self) -> dict:
+        if not self.path.is_file():
+            raise FileNotFoundError(self.path)
+        return load_ledger(self.path)
+
+    def write(self, payload: dict) -> None:
+        _scrub(payload)
+        _atomic_write(self.path, payload)
+
+    def transition(self, target: JobState, **fields: Any) -> dict:
+        payload = self.read() if self.path.is_file() else new_job("uninitialized")
+        current = JobState(payload["state"])
+        if target not in ALLOWED_TRANSITIONS.get(current, frozenset()):
+            raise InvalidTransitionError(
+                f"cannot transition from {current.value} to {target.value}"
+            )
+        now = _utcnow()
+        history = list(payload.get("history") or [])
+        history.append({
+            "from_state": current.value,
+            "to_state": target.value,
+            "at": now,
+        })
+        # Coerce dataclass-like values to plain dicts so json serialization works.
+        for key, value in fields.items():
+            if hasattr(value, "to_dict"):
+                fields[key] = value.to_dict()
+        payload.update(fields)
+        payload["state"] = target.value
+        payload["revision"] = int(payload.get("revision", 1)) + 1
+        payload["updated_at"] = now
+        payload["history"] = history
+        self.write(payload)
+        return payload
+
+    def invalidate_quote(
+        self,
+        *,
+        reason: str,
+        new_preview_hash: str | None = None,
+    ) -> dict:
+        """Walk the job back to PreviewValidated (or PreviewSpecified if the
+        preview hash itself changed) whenever a quote-binding input changed.
+
+        Raises StaleReceiptError if the supplied preview hash is not a valid
+        SHA-256 hex string.
+        """
+        payload = self.read()
+        current = JobState(payload["state"])
+        if current not in {JobState.QUOTED, JobState.APPROVED}:
+            raise InvalidTransitionError(
+                f"cannot invalidate quote from {current.value}; must be Quoted or Approved"
+            )
+        if new_preview_hash is not None and not SHA256_PATTERN.fullmatch(new_preview_hash):
+            raise StaleReceiptError(f"new_preview_hash must be 64 lowercase hex chars (got {new_preview_hash!r})")
+
+        if new_preview_hash is not None:
+            preview = dict(payload.get("preview") or {})
+            preview["sha256"] = new_preview_hash
+            payload["preview"] = preview
+            target = JobState.PREVIEW_SPECIFIED
+        else:
+            target = JobState.PREVIEW_VALIDATED
+
+        now = _utcnow()
+        history = list(payload.get("history") or [])
+        history.append({
+            "from_state": current.value,
+            "to_state": target.value,
+            "at": now,
+            "note": f"quote invalidated: {reason}",
+        })
+        payload["quote_inputs"] = None
+        payload["quote"] = None
+        payload["approval"] = None
+        payload["submit"] = None
+        payload["state"] = target.value
+        payload["revision"] = int(payload.get("revision", 1)) + 1
+        payload["updated_at"] = now
+        payload["error_category"] = "quote_changed"
+        payload["history"] = history
+        self.write(payload)
+        return payload
+
+
+__all__ = [
+    "SCHEMA_VERSION",
+    "ALLOWED_TRANSITIONS",
+    "JobState",
+    "InvalidTransitionError",
+    "StaleReceiptError",
+    "LedgerCorruptError",
+    "QuoteInputs",
+    "JobLedger",
+    "new_job",
+    "load_ledger",
+]
