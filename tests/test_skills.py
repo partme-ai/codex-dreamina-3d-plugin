@@ -145,6 +145,11 @@ class AutomaticPolicySkillTests(unittest.TestCase):
         self.assertIn("submit once", body)
         self.assertIn("quote exceeds the cap", body)
 
+    def test_maya_skill_is_explicitly_experimental(self) -> None:
+        _, body = _load_skill("codex-dreamina-3d-from-maya")
+        self.assertIn("experimental", body.lower())
+        self.assertIn("NOT_RUN", body)
+
 
 if __name__ == "__main__":
     unittest.main()

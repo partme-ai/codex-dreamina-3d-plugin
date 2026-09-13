@@ -10,10 +10,15 @@ metadata:
 
 # codex-dreamina-3d-from-maya
 
+> **Experimental — runtime gate `NOT_RUN`.** This Skill preserves fixture and
+> contract compatibility only. It is not part of the current production
+> release because no licensed Maya runtime has passed end-to-end acceptance.
+
 ## When to use
 
-The user wants a Dreamina 3D render from a Maya scene. Companion
-`codex-maya` is already installed.
+The user explicitly requests the experimental Maya path and understands that
+its runtime acceptance is `NOT_RUN`. Do not route ordinary production requests
+here.
 
 ## Workflow
 

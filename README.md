@@ -2,21 +2,21 @@
 
 <img src="assets/logo.png" alt="Dreamina 3D logo" width="128">
 
-> Compatibility foundation for Blender/Maya-to-Dreamina 3D orchestration.
+> Production-oriented Blender-to-Dreamina 3D orchestration.
 
 [English](README.md) | [简体中文](README.zh-CN.md)
 
 ## Status and purpose
 
-`codex-dreamina-3d` is a receipt-driven composition plugin rather than a DCC implementation. Its Blender/Maya companion discovery, preview validation, resumable job ledger, Dreamina Design handoff, fixture end-to-end workflows, distribution checks, and Agent Skills are implemented and validated offline. The real Blender 5.2.1 preview and receipt handoff pass; Maya and paid Seedance runtime acceptance remain separate, explicitly authorized gates.
+`codex-dreamina-3d` is a receipt-driven composition plugin rather than a DCC implementation. The production scope is macOS with Blender 5.2.1 LTS and Dreamina Design MCP. Blender preview validation, resumable state, three-entry routing, and a real Seedance canary are verified separately. Maya remains an experimental fixture-compatible path with runtime status `NOT_RUN`.
 
 ## License
 
 Apache-2.0 — see [LICENSE](LICENSE).
 
 ```text
-Blender/Maya scene
-  -> codex-blender or codex-maya
+Blender scene
+  -> codex-blender
   -> validated preview receipt
   -> codex-dreamina-3d handoff
   -> codex-dreamina-design approval/submission/recovery
@@ -25,10 +25,15 @@ Blender/Maya scene
 
 ## Boundaries
 
-- No duplicated Blender, Maya, media, authentication, billing, or Dreamina CLI logic.
+- No duplicated Blender, media, authentication, billing, or Dreamina CLI logic.
 - No silent installation of companion plugins or DCC applications.
 - No vendor uploader source, bundled ffmpeg, local browser bridge, or private API replication.
 - Local preview completion and remote generation completion are separate gates.
+
+## Experimental compatibility
+
+The repository retains a Maya receipt fixture and experimental Skill for
+contract evolution. Maya is not advertised or accepted as a production runtime.
 
 ## Documentation
 

@@ -35,6 +35,19 @@ class DistributionTests(unittest.TestCase):
         self.assertEqual(manifest["version"], "0.2.0")
         self.assertEqual(manifest["repository"], REPOSITORY)
         self.assertEqual(manifest["skills"], "./skills/")
+
+    def test_manifest_does_not_advertise_unverified_maya_runtime(self) -> None:
+        manifest = load_json(ROOT / ".codex-plugin" / "plugin.json")
+        public_text = " ".join(
+            [
+                str(manifest.get("description", "")),
+                str(manifest.get("keywords", "")),
+                str(manifest.get("interface", {}).get("shortDescription", "")),
+                str(manifest.get("interface", {}).get("longDescription", "")),
+                str(manifest.get("interface", {}).get("defaultPrompt", "")),
+            ]
+        ).lower()
+        self.assertNotIn("maya", public_text)
         self.assertNotIn("mcpServers", manifest)
         interface = manifest["interface"]
         self.assertEqual(interface["displayName"], DISPLAY_NAME)

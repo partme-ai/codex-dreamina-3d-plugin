@@ -2,21 +2,21 @@
 
 <img src="assets/logo.png" alt="Dreamina 3D Logo" width="128">
 
-> 从 Blender/Maya 预览产物到 Dreamina 3D 的 Codex 编排兼容基础。
+> 面向生产的 Blender 到 Dreamina 3D 编排插件。
 
 [English](README.md) | [简体中文](README.zh-CN.md)
 
 ## 状态与定位
 
-`codex-dreamina-3d` 是回执驱动的组合插件，而不是 DCC 实现。Blender/Maya 伴随能力发现、预览验证、可恢复作业台账、Dreamina Design 交接、夹具端到端工作流、分发检查和 Agent Skills 均已实现并通过离线验证。真实 Blender 5.2.1 预览与回执交接已通过；Maya 与付费 Seedance 运行时验收仍是需要单独明确授权的门禁。
+`codex-dreamina-3d` 是回执驱动的组合插件，而不是 DCC 实现。当前生产范围为 macOS、Blender 5.2.1 LTS 与 Dreamina Design MCP。Blender 预览验证、可恢复状态、三入口路由和真实 Seedance canary 分别保留证据。Maya 仅保留实验性夹具兼容，运行状态为 `NOT_RUN`。
 
 ## 许可证
 
 Apache-2.0，见 [LICENSE](LICENSE)。
 
 ```text
-Blender/Maya 场景
-  -> codex-blender 或 codex-maya
+Blender 场景
+  -> codex-blender
   -> 已验证预览回执
   -> codex-dreamina-3d 交接
   -> codex-dreamina-design 批准/提交/恢复
@@ -25,10 +25,14 @@ Blender/Maya 场景
 
 ## 边界
 
-- 不重复实现 Blender、Maya、媒体、认证、计费或 Dreamina CLI 逻辑。
+- 不重复实现 Blender、媒体、认证、计费或 Dreamina CLI 逻辑。
 - 不静默安装伴随插件或 DCC 软件。
 - 不复制供应商上传器、不捆绑 ffmpeg、不仿制本地浏览器 Bridge 或私有 API。
 - 本地预览完成和远程生成完成是两个独立门禁。
+
+## 实验性兼容
+
+仓库保留 Maya 回执夹具和实验 Skill，用于契约演进；当前不对外声明或验收 Maya 生产运行能力。
 
 ## 文档
 
