@@ -4,7 +4,7 @@
 
 实现回执驱动的编排插件，只通过稳定本地 JSON 契约和 Skill 能力发现联动，不导入伴随插件实现模块。
 
-## 目标目录
+## 已实现目录
 
 ```text
 .codex-plugin/plugin.json

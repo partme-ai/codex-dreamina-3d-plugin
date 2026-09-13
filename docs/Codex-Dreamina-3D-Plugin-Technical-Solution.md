@@ -4,7 +4,7 @@
 
 Implement a receipt-driven orchestration plugin. Integrate only through stable local JSON contracts and Skill capability discovery; do not import companion implementation modules.
 
-## Planned layout
+## Implemented layout
 
 ```text
 .codex-plugin/plugin.json

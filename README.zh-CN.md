@@ -8,7 +8,7 @@
 
 ## 状态与定位
 
-`codex-dreamina-3d` 现已具备经过验证的兼容 manifest、Marketplace 元数据、品牌资产、Legal 文档、测试和实施目录。它仍是组合插件而不是 DCC 实现；跨插件交接工作流尚未实现。
+`codex-dreamina-3d` 是回执驱动的组合插件，而不是 DCC 实现。Blender/Maya 伴随能力发现、预览验证、可恢复作业台账、Dreamina Design 交接、夹具端到端工作流、分发检查和 Agent Skills 均已实现并通过离线验证。真实 Blender、Maya 与付费 Seedance 运行时验收仍是需要单独明确授权的门禁。
 
 ## 许可证
 

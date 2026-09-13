@@ -11,9 +11,9 @@ and [Task 8 verification — Dreamina](./dreamina-path.md)).
 The plugin's offline test suite covers every non-runtime gate:
 
 ```text
-$ python3 -m unittest discover -s tests -v
+$ /usr/local/bin/python3 -m unittest discover -s tests -v
 ...
-Ran 79 tests in ~13s
+Ran 131 tests in ~18s
 OK
 ```
 
@@ -29,6 +29,12 @@ Individual breakdown:
 | `tests/test_design_handoff.py`         | Task 5 — fake Design adapter, normalized request |
 | `tests/test_skills.py`                 | Task 6 — four Skills, frontmatter, prohibitions  |
 | `tests/test_distribution_extended.py`  | Task 7 — Skill parity, link audit, ffmpeg absence |
+| `tests/test_e2e_fixture_pipeline.py`    | Task 8 — Blender/Maya fixture pipelines reach validated completion |
+| `tests/test_local_install.py`           | Local marketplace registration, cachebuster, installed Skill discovery |
+| `tests/test_scenarios.py`               | No-skill baselines and executable guard scenarios |
+| `tests/test_three_package_validation.py`| Blender, Maya, and Dreamina 3D distribution validators |
+| `tests/test_trace.py`                   | Four-Skill TRACE structure and score floor |
+| `tests/test_verification_docs.py`       | Runtime gate evidence remains explicit and non-inferred |
 
 ## Distribution validator
 

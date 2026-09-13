@@ -8,7 +8,7 @@
 
 ## Status and purpose
 
-`codex-dreamina-3d` now has a validated compatibility manifest, marketplace metadata, brand assets, legal documents, tests, and implementation directories. It remains a composition plugin rather than a DCC implementation; cross-plugin handoff workflows are not implemented yet.
+`codex-dreamina-3d` is a receipt-driven composition plugin rather than a DCC implementation. Its Blender/Maya companion discovery, preview validation, resumable job ledger, Dreamina Design handoff, fixture end-to-end workflows, distribution checks, and Agent Skills are implemented and validated offline. Real Blender, Maya, and paid Seedance runtime acceptance remain separate, explicitly authorized gates.
 
 ## License
 

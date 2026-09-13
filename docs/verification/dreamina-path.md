@@ -7,28 +7,32 @@ Dreamina (Seedance 2.5) half of the Dreamina 3D pipeline.
 
 | Gate                                            | Status            | Reason                                                            |
 |-------------------------------------------------|-------------------|--------------------------------------------------------------------|
-| `paid_seedance_canary`                          | `NOT_RUN`         | Action-time approval not granted; no credentials available        |
+| `paid_seedance_canary`                          | `NOT_RUN`         | Action-time approval not granted; authentication was not exercised |
 | `codex_dreamina_design_receipt_roundtrip`       | `PASS` (fixture)  | Fake Design adapter exercises capabilities/quote/approve/submit/query/download |
 
 ## Why `paid_seedance_canary` was not exercised here
 
 The plan explicitly requires a separate action-time approval for any
 paid Seedance generation. That approval was not granted in this
-environment, and there are no Dreamina credentials available.
+environment. Authentication and credit state were deliberately not exercised.
 
-Probe performed on this environment (2026-09-12):
+Probe performed on this environment (2026-09-13):
 
 ```text
-$ command -v dreamina dreamina-cli    # (no output)
+$ command -v dreamina
+/Users/wandl/.local/bin/dreamina
+$ dreamina --help
+Usage: dreamina [flags]
 ```
 
-No Dreamina CLI is installed and no credentials were supplied, so the
-gate is recorded as `NOT_RUN` rather than inferred.
+The Dreamina CLI and `codex-dreamina-design` plugin are installed. That does
+not prove authentication, account entitlement, quote approval, or a successful
+Seedance generation, so the gate remains `NOT_RUN`.
 
 To run the canary in a future authorized environment:
 
-1. Install the real `codex-dreamina-design` plugin and complete the
-   web login that the design adapter requires (see
+1. Confirm the installed `codex-dreamina-design` adapter contract and complete
+   the web login that it requires (see
    `WebPrerequisiteError`).
 2. Explicitly approve the canary run before invoking the orchestrator;
    the design handoff refuses to call `submit` without that approval.

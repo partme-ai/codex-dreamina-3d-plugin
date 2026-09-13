@@ -20,38 +20,38 @@
 
 ## Foundation baseline completed 2026-09-12
 
-The repository already contains the validated `codex-dreamina-3d` compatibility manifest, URL marketplace entry, Apache-2.0/legal files, transparent brand assets, implementation directories, distribution validator, and RED/GREEN foundation tests. Tasks below must extend these files rather than recreate or overwrite them. Cross-plugin receipts and Blender/Maya-to-Dreamina orchestration remain unimplemented.
+The repository already contains the validated `codex-dreamina-3d` compatibility manifest, URL marketplace entry, Apache-2.0/legal files, transparent brand assets, implementation directories, distribution validator, and RED/GREEN foundation tests. Tasks below extended these files rather than recreating or overwriting them. As of 2026-09-13, Tasks 1–7 and the fixture portion of Task 8 are implemented and freshly verified; authorized real-runtime gates remain open.
 
 ### Task 1: Shared contract conformance
-- [ ] Write failing tests using planned Blender/Maya ArtifactReceipt fixtures.
-- [ ] Define `3d_job` and compatibility schemas plus handoff validator.
-- [ ] Reject stale/hash-mismatched/unrestored artifacts; commit `feat: define Dreamina 3D handoff`.
+- [x] Write failing tests using planned Blender/Maya ArtifactReceipt fixtures.
+- [x] Define `3d_job` and compatibility schemas plus handoff validator.
+- [x] Reject stale/hash-mismatched/unrestored artifacts; commit `feat: define Dreamina 3D handoff`.
 
 ### Task 2: Companion capability discovery
-- [ ] Write failing tests for none/one/both/incompatible companions.
-- [ ] Implement deterministic selection and explicit user choice for ambiguity.
-- [ ] Prove no installation side effect; commit `feat: discover 3D companion plugins`.
+- [x] Write failing tests for none/one/both/incompatible companions.
+- [x] Implement deterministic selection and explicit user choice for ambiguity.
+- [x] Prove no installation side effect; commit `feat: discover 3D companion plugins`.
 
 ### Task 3: End-to-end job ledger
-- [ ] Write failing transition, atomicity, restart and corrupted-ledger tests.
-- [ ] Implement the specified state machine and receipt references without secrets.
-- [ ] Prove invalid transitions fail closed; commit `feat: persist Dreamina 3D jobs`.
+- [x] Write failing transition, atomicity, restart and corrupted-ledger tests.
+- [x] Implement the specified state machine and receipt references without secrets.
+- [x] Prove invalid transitions fail closed; commit `feat: persist Dreamina 3D jobs`.
 
 ### Task 4: Design-plugin handoff
-- [ ] Write failing tests for capability resolution, quote binding, changed inputs, submit-once and unknown results.
-- [ ] Implement only the public receipt interface to `codex-dreamina-design`.
-- [ ] Prove timeout queries instead of resubmits; commit `feat: orchestrate Seedance generation`.
+- [x] Write failing tests for capability resolution, quote binding, changed inputs, submit-once and unknown results.
+- [x] Implement only the public receipt interface to `codex-dreamina-design`.
+- [x] Prove timeout queries instead of resubmits; commit `feat: orchestrate Seedance generation`.
 
 ### Task 5: Agent Skills
-- [ ] Baseline no-skill scenarios for silent installs, stale previews, and paid retries.
-- [ ] Create and individually validate use/from-blender/from-maya/resume Skills.
-- [ ] Run TRACE and forward scenarios; commit `feat: add Dreamina 3D workflows`.
+- [x] Baseline no-skill scenarios for silent installs, stale previews, and paid retries.
+- [x] Create and individually validate use/from-blender/from-maya/resume Skills.
+- [x] Run TRACE and forward scenarios; commit `feat: add Dreamina 3D workflows`.
 
 ### Task 6: Distribution and cross-plugin acceptance
-- [ ] Add failing identity/marketplace/link/secret/contract-version tests.
-- [ ] Implement validator and public marketplace entry.
-- [ ] Run fake-companion E2E tests and validate all three plugin packages.
-- [ ] Record real Blender, Maya, and paid Dreamina gates separately; commit `test: verify Dreamina 3D distribution`.
+- [x] Add failing identity/marketplace/link/secret/contract-version tests.
+- [x] Implement validator and public marketplace entry.
+- [x] Run fake-companion E2E tests and validate all three plugin packages.
+- [x] Record real Blender, Maya, and paid Dreamina gates separately; commit `test: verify Dreamina 3D distribution`.
 
 ---
 
@@ -66,10 +66,10 @@ def validate_artifact(receipt: dict, current_file: Path) -> list[str]: ...
 def compatible_producer(receipt: dict, supported_versions: dict) -> bool: ...
 ```
 
-- [ ] RED-test plugin ID `codex-dreamina-3d`, producer IDs `codex-blender|codex-maya`, receipt schema version, producer version range, path scope, file existence, SHA-256, codec, dimensions, fps, duration, bytes and `restoration.status=confirmed`.
-- [ ] Reject a file whose stat/hash changes while validation runs.
-- [ ] Implement a closed `3d_job` schema referencing receipts by immutable ID/hash rather than embedding secrets.
-- [ ] Run contract tests and plugin validator; commit.
+- [x] RED-test plugin ID `codex-dreamina-3d`, producer IDs `codex-blender|codex-maya`, receipt schema version, producer version range, path scope, file existence, SHA-256, codec, dimensions, fps, duration, bytes and `restoration.status=confirmed`.
+- [x] Reject a file whose stat/hash changes while validation runs.
+- [x] Implement a closed `3d_job` schema referencing receipts by immutable ID/hash rather than embedding secrets.
+- [x] Run contract tests and plugin validator; commit.
 
 ### Task 2 — companion detection and selection
 
@@ -87,11 +87,11 @@ def discover_companions(search_roots: tuple[Path, ...]) -> list[Companion]: ...
 def select_companion(candidates: list[Companion], requested: str | None) -> Companion: ...
 ```
 
-- [ ] RED-test zero, Blender-only, Maya-only, both without choice, explicit valid choice, incompatible contract and duplicate/stale installation.
-- [ ] Discover through stable installed-plugin metadata or an explicit adapter executable; do not crawl unrelated user directories.
-- [ ] Missing companion returns exact installation guidance but performs no install.
-- [ ] Both companions require user selection unless the request explicitly names Blender/Maya.
-- [ ] Run tests and commit.
+- [x] RED-test zero, Blender-only, Maya-only, both without choice, explicit valid choice, incompatible contract and duplicate/stale installation.
+- [x] Discover through stable installed-plugin metadata or an explicit adapter executable; do not crawl unrelated user directories.
+- [x] Missing companion returns exact installation guidance but performs no install.
+- [x] Both companions require user selection unless the request explicitly names Blender/Maya.
+- [x] Run tests and commit.
 
 ### Task 3 — end-to-end job ledger
 
@@ -113,63 +113,63 @@ class JobState(str, Enum):
     UNKNOWN = "Unknown"
 ```
 
-- [ ] RED-test every allowed transition, every direct transition that skips a gate, concurrent update conflict, truncated/corrupt ledger, restart and stale receipt reference.
-- [ ] Implement atomic write-to-temp/fsync/replace with monotonic revision.
-- [ ] Store only non-secret IDs, hashes, states, timestamps and error categories.
-- [ ] Require a new quote after any preview hash, prompt, reference, model, resolution, ratio or duration change.
-- [ ] Run state tests and commit.
+- [x] RED-test every allowed transition, every direct transition that skips a gate, concurrent update conflict, truncated/corrupt ledger, restart and stale receipt reference.
+- [x] Implement atomic write-to-temp/fsync/replace with monotonic revision.
+- [x] Store only non-secret IDs, hashes, states, timestamps and error categories.
+- [x] Require a new quote after any preview hash, prompt, reference, model, resolution, ratio or duration change.
+- [x] Run state tests and commit.
 
 ### Task 4 — DCC preview orchestration
 
 **Files:** `scripts/dcc_handoff.py`, `tests/fakes/fake_blender_adapter.py`, `tests/fakes/fake_maya_adapter.py`, `tests/test_dcc_handoff.py`.
 
-- [ ] RED-test inspect-before-export, user-approved camera/range/output, adapter error, timeout, restoration unknown, stale output and unsupported media.
-- [ ] Invoke companions via argv and JSON receipts; never import their internal Python modules.
-- [ ] Preserve the exact producer receipt and independently re-hash the artifact.
-- [ ] On timeout, query adapter status if supported or return local `Unknown`; never repeat the export automatically.
-- [ ] Run both fake-companion paths and commit.
+- [x] RED-test inspect-before-export, user-approved camera/range/output, adapter error, timeout, restoration unknown, stale output and unsupported media.
+- [x] Invoke companions via argv and JSON receipts; never import their internal Python modules.
+- [x] Preserve the exact producer receipt and independently re-hash the artifact.
+- [x] On timeout, query adapter status if supported or return local `Unknown`; never repeat the export automatically.
+- [x] Run both fake-companion paths and commit.
 
 ### Task 5 — Dreamina Design handoff
 
 **Files:** `scripts/design_handoff.py`, `tests/fakes/fake_design_adapter.py`, `tests/test_design_handoff.py`.
 
-- [ ] RED-test missing design plugin, capability mismatch, web prerequisite, quote mismatch, rejected/expired approval, duplicate submission, unknown state, resume and artifact mismatch.
-- [ ] Send a normalized multimodal request containing the validated preview receipt/hash and user prompt; do not send DCC scene data.
-- [ ] Delegate quote, approval, submit, query and download through the public `codex-dreamina-design` receipt interface.
-- [ ] Persist the returned submit ID before reporting submission success.
-- [ ] Prove timeout enters `Unknown` and only queries; commit.
+- [x] RED-test missing design plugin, capability mismatch, web prerequisite, quote mismatch, rejected/expired approval, duplicate submission, unknown state, resume and artifact mismatch.
+- [x] Send a normalized multimodal request containing the validated preview receipt/hash and user prompt; do not send DCC scene data.
+- [x] Delegate quote, approval, submit, query and download through the public `codex-dreamina-design` receipt interface.
+- [x] Persist the returned submit ID before reporting submission success.
+- [x] Prove timeout enters `Unknown` and only queries; commit.
 
 ### Task 6 — Agent workflows
 
 **Files:** `skills/codex-dreamina-3d-use/`, `skills/codex-dreamina-3d-from-blender/`, `skills/codex-dreamina-3d-from-maya/`, `skills/codex-dreamina-3d-resume/`, `tests/scenarios/`.
 
-- [ ] Capture no-skill baselines for silent companion install, ambiguous DCC choice, unvalidated preview, quote reuse, paid retry and false end-to-end completion.
-- [ ] Implement the router and three bounded workflows one at a time.
-- [ ] Each Skill must distinguish local preview status, Dreamina submission status and final artifact acceptance.
-- [ ] After each Skill run quick validation, strict TRACE and fresh-context behavior scenarios.
-- [ ] Verify resume starts from ledger state and never repeats completed local/remote actions; commit.
+- [x] Capture no-skill baselines for silent companion install, ambiguous DCC choice, unvalidated preview, quote reuse, paid retry and false end-to-end completion.
+- [x] Implement the router and three bounded workflows one at a time.
+- [x] Each Skill must distinguish local preview status, Dreamina submission status and final artifact acceptance.
+- [x] After each Skill run quick validation, strict TRACE and fresh-context behavior scenarios.
+- [x] Verify resume starts from ledger state and never repeats completed local/remote actions; commit.
 
 ### Task 7 — clean-room provenance and distribution
 
 **Files:** `docs/research/seedance-2.5-uploader-behavior.md`, `scripts/validate_distribution.py`, `tests/test_distribution.py`, `docs/verification/offline.md`.
 
-- [ ] Record only observed external behavior: official Blender package 1.0.0, SHA-256 `471b315b8da91023be46496f902f7d64c1b48b91567d10cd442de7dffe0d68ae`, camera/local modes, restoration, H.264 MP4 and protocol-driven constraints.
-- [ ] Explicitly exclude vendor source, UI strings, identifiers, local bridge protocol and bundled ffmpeg from implementation inputs.
-- [ ] RED-test plugin identity, repository URL, four Skills, contract versions, links, licenses, symlinks, caches and secret patterns.
-- [ ] Run all offline unit/integration tests, plugin and Skill validators, TRACE, link audit and `git diff --check`.
-- [ ] Install locally and verify source/cache parity plus fresh-task Skill discovery; commit.
+- [x] Record only observed external behavior: official Blender package 1.0.0, SHA-256 `471b315b8da91023be46496f902f7d64c1b48b91567d10cd442de7dffe0d68ae`, camera/local modes, restoration, H.264 MP4 and protocol-driven constraints.
+- [x] Explicitly exclude vendor source, UI strings, identifiers, local bridge protocol and bundled ffmpeg from implementation inputs.
+- [x] RED-test plugin identity, repository URL, four Skills, contract versions, links, licenses, symlinks, caches and secret patterns.
+- [x] Run all offline unit/integration tests, plugin and Skill validators, TRACE, link audit and `git diff --check`.
+- [x] Install locally and verify source/cache parity plus fresh-task Skill discovery; commit.
 
 ### Task 8 — cross-plugin runtime acceptance
 
 **Files:** `docs/verification/blender-path.md`, `docs/verification/maya-path.md`, `docs/verification/dreamina-path.md`, `docs/verification/end-to-end.md`.
 
-- [ ] Validate `codex-blender` fixture path without Dreamina and record its receipt.
-- [ ] Validate `codex-maya` fixture path without Dreamina and record its receipt.
-- [ ] Validate both receipts through this plugin using fake `codex-dreamina-design`; no network or credits.
+- [x] Validate `codex-blender` fixture path without Dreamina and record its receipt.
+- [x] Validate `codex-maya` fixture path without Dreamina and record its receipt.
+- [x] Validate both receipts through this plugin using fake `codex-dreamina-design`; no network or credits.
 - [ ] With explicit runtime authorization, run one local Blender and one local Maya path; keep unsupported environments blocked rather than inferred.
 - [ ] With separate action-time approval, run at most one low-cost Seedance canary; otherwise record `paidCanary=NOT_RUN`.
-- [ ] Prove end-to-end completion requires a validated final artifact, not HTTP/CLI success alone.
-- [ ] Commit runtime evidence separately from offline evidence and stop for integration choice.
+- [x] Prove end-to-end completion requires a validated final artifact, not HTTP/CLI success alone.
+- [x] Commit fixture/runtime-blocker evidence separately from offline evidence and stop for integration choice.
 
 ## Cross-repository execution order
 

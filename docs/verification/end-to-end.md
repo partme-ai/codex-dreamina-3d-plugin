@@ -9,9 +9,9 @@ Dreamina 3D pipeline.
 |---------------------------------------------------|-------------------|------------------------------------------------------|
 | `fixture_blender_to_design_e2e`                   | `PASS` (fixture)  | Driven by fake Blender + fake Design adapters         |
 | `fixture_maya_to_design_e2e`                      | `PASS` (fixture)  | Driven by fake Maya + fake Design adapters            |
-| `real_blender_to_design_e2e`                      | `NOT_RUN`         | No real Blender install, no Dreamina credentials     |
-| `real_maya_to_design_e2e`                         | `NOT_RUN`         | No real Maya install, no Dreamina credentials        |
-| `paid_seedance_canary`                            | `NOT_RUN`         | No action-time approval, no Dreamina credentials     |
+| `real_blender_to_design_e2e`                      | `NOT_RUN`         | Blender is present; callable companion adapter and authorization are absent |
+| `real_maya_to_design_e2e`                         | `NOT_RUN`         | No real Maya install or callable companion adapter   |
+| `paid_seedance_canary`                            | `NOT_RUN`         | No action-time approval; authentication not exercised |
 
 ## End-to-end completion contract
 
@@ -40,9 +40,9 @@ The fixture path uses the fake adapters that ship under `tests/fakes/`:
 $ python3 scripts/validate_distribution.py .
 validated codex-dreamina-3d compatibility foundation 0.1.0
 
-$ python3 -m unittest discover -s tests
-............................................................
-Ran 88 tests in ~12s
+$ /usr/local/bin/python3 -m unittest discover -s tests
+...
+Ran 131 tests in 18.371s
 OK
 ```
 

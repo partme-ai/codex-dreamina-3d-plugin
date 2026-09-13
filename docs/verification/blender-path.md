@@ -7,7 +7,7 @@ Blender half of the Dreamina 3D pipeline.
 
 | Gate                                            | Status            | Reason                                                            |
 |-------------------------------------------------|-------------------|--------------------------------------------------------------------|
-| `local_blender_runtime`                         | `NOT_RUN`         | No local Blender install detected in this verification environment |
+| `local_blender_runtime`                         | `NOT_RUN`         | Blender is present, but no callable companion adapter or runtime authorization is available |
 | `codex_blender_receipt_recorded`                | `PASS` (fixture)  | Validated via the fake Blender adapter (`tests/fakes/fake_blender_adapter.py`) |
 | `blender_to_design_receipt_chain`               | `PASS` (fixture)  | Fake Design adapter accepted the preview receipt without a network call |
 
@@ -37,18 +37,22 @@ The plan separates offline evidence (Tasks 1–7) from runtime evidence
 - explicit runtime authorization from the operator (the design plugin's
   approval gate is not bypassed for verification).
 
-Probe performed on this environment (2026-09-12):
+Probe performed on this environment (2026-09-13):
 
 ```text
-$ command -v blender Blender          # (no output)
-$ ls -d /Applications/Blender.app     # (no such file or directory)
+$ /Applications/Blender.app/Contents/MacOS/Blender --version
+Blender 5.2.1 LTS
+
+$ python3 -c '... discover_companions((Path(".."),)) ...'
+# no candidates: codex-blender-plugin does not ship bin/blender_adapter
 ```
 
-No Blender installation is present, so the gate is recorded as `NOT_RUN`
-rather than inferred. Explicit runtime authorization was likewise not
-granted. To run it, install Blender, install the `codex-blender`
-companion adapter, and invoke it with the same argv/JSON contract shown
-above.
+Blender and the `codex-blender` plugin are present, but the orchestrator's
+documented capability probe cannot resolve a callable adapter executable.
+Explicit runtime authorization was likewise not granted, so the gate remains
+`NOT_RUN` rather than inferred. To run it, publish the `bin/blender_adapter`
+contract from the companion plugin, obtain runtime authorization, and invoke
+it with the same argv/JSON contract shown above.
 
 ## Determinism guarantees preserved
 

@@ -1,6 +1,6 @@
 # Codex Dreamina 3D Plugin Architecture
 
-> Target orchestration architecture, not implemented. Updated 2026-09-11.
+> Implemented orchestration architecture. Offline and fixture gates are validated; authorized real-runtime gates remain pending. Updated 2026-09-13.
 
 ## Context
 
