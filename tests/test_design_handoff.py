@@ -116,11 +116,60 @@ class HappyPathTests(unittest.TestCase):
             self.assertEqual(approval["status"], "approved")
             submit = design_handoff(executable=wrapper, mode="submit", payload={"job_key": "j1"}, request_dir=state_dir)
             self.assertIn("design_submit_id", submit)
-            query = design_handoff(executable=wrapper, mode="query", payload={"design_submit_id": submit["design_submit_id"]}, request_dir=state_dir)
+            query = design_handoff(
+                executable=wrapper,
+                mode="query",
+                payload={"design_submit_id": submit["design_submit_id"]},
+                request_dir=state_dir,
+                output_path=state_dir / "query-result.mp4",
+            )
             self.assertEqual(query["status"], "succeeded")
 
 
 class FailurePathTests(unittest.TestCase):
+    def test_succeeded_without_artifact_is_rejected(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            state_dir = Path(tmp)
+            wrapper = _make_executable(state_dir)
+            with self.assertRaises(ArtifactMismatchError):
+                design_handoff(
+                    executable=wrapper,
+                    mode="query",
+                    payload={"force_error": "missing_artifact"},
+                    request_dir=state_dir,
+                )
+
+    def test_succeeded_with_missing_file_is_rejected(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            state_dir = Path(tmp)
+            wrapper = _make_executable(state_dir)
+            with self.assertRaises(ArtifactMismatchError):
+                design_handoff(
+                    executable=wrapper,
+                    mode="query",
+                    payload={"force_error": "missing_file"},
+                    request_dir=state_dir,
+                )
+
+    def test_download_rehashes_expected_digest(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            state_dir = Path(tmp)
+            wrapper = _make_executable(state_dir)
+            output = state_dir / "download.mp4"
+            import hashlib
+            expected = hashlib.sha256(b"FAKE_MEDIA_BYTES").hexdigest()
+            result = design_handoff(
+                executable=wrapper,
+                mode="download",
+                payload={"expected_sha256": expected},
+                request_dir=state_dir,
+                output_path=output,
+            )
+            self.assertIn("sha256", result, "download must return its verified digest")
+            self.assertIn("bytes", result, "download must return its verified byte size")
+            self.assertEqual(result["sha256"], expected)
+            self.assertEqual(result["bytes"], len(b"FAKE_MEDIA_BYTES"))
+
     def test_missing_capability_raises(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             state_dir = Path(tmp)

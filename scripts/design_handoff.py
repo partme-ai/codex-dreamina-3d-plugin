@@ -55,6 +55,36 @@ class ArtifactMismatchError(DesignHandoffError):
     pass
 
 
+def verify_result_artifact(artifact: dict) -> dict:
+    """Require and independently verify a downloaded result artifact."""
+    if not isinstance(artifact, dict):
+        raise ArtifactMismatchError("succeeded result has no artifact object")
+    raw_path = artifact.get("path")
+    declared_hash = artifact.get("sha256")
+    if not isinstance(raw_path, str) or not raw_path:
+        raise ArtifactMismatchError("succeeded result artifact is missing path")
+    if not isinstance(declared_hash, str) or len(declared_hash) != 64 or any(
+        char not in "0123456789abcdef" for char in declared_hash
+    ):
+        raise ArtifactMismatchError("succeeded result artifact is missing a lowercase sha256")
+    path = Path(raw_path)
+    if path.is_symlink() or not path.is_file():
+        raise ArtifactMismatchError(f"result artifact is not a regular non-symlink file: {path}")
+    size = path.stat().st_size
+    if size <= 0:
+        raise ArtifactMismatchError(f"result artifact is empty: {path}")
+    digest = hashlib.sha256()
+    with path.open("rb") as fh:
+        for chunk in iter(lambda: fh.read(65536), b""):
+            digest.update(chunk)
+    actual_hash = digest.hexdigest()
+    if actual_hash != declared_hash:
+        raise ArtifactMismatchError(
+            f"declared sha256 {declared_hash} != on-disk {actual_hash} for {path}"
+        )
+    return {"path": str(path), "sha256": actual_hash, "bytes": size}
+
+
 def _new_temp_request_path(request_dir: Path, label: str) -> Path:
     fd, name = tempfile.mkstemp(prefix=f"design_{label}_", suffix=".json", dir=str(request_dir))
     os.close(fd)
@@ -168,28 +198,16 @@ def design_handoff(
         if status == "unknown" or proc.returncode == 2:
             raise UnknownStateError(f"query returned unknown: {receipt}")
         if status == "succeeded":
-            artifact = receipt.get("artifact") or {}
-            declared_hash = artifact.get("sha256")
-            artifact_path = artifact.get("path")
-            if declared_hash and artifact_path and Path(artifact_path).is_file():
-                # Independently re-hash the file the design plugin claims is
-                # the result; reject on any mismatch before reporting success.
-                import hashlib as _hl
-                h = _hl.sha256()
-                with open(artifact_path, "rb") as fh:
-                    for chunk in iter(lambda: fh.read(65536), b""):
-                        h.update(chunk)
-                if h.hexdigest() != declared_hash:
-                    raise ArtifactMismatchError(
-                        f"declared sha256 {declared_hash} != on-disk {h.hexdigest()} for {artifact_path}"
-                    )
+            receipt["artifact"] = verify_result_artifact(receipt.get("artifact"))
             return receipt
         raise DesignHandoffError(f"unexpected query result: {receipt}")
 
     if mode == "download":
         if proc.returncode != 0 or output_path is None or not output_path.is_file():
             raise DesignHandoffError("download failed")
-        return {"path": str(output_path)}
+        return verify_result_artifact(
+            {"path": str(output_path), "sha256": payload.get("expected_sha256")}
+        )
 
     raise DesignHandoffError(f"unsupported mode: {mode!r}")
 
@@ -226,6 +244,7 @@ __all__ = [
     "ApprovalRejectedError",
     "UnknownStateError",
     "ArtifactMismatchError",
+    "verify_result_artifact",
     "design_handoff",
     "build_multimodal_request",
 ]

@@ -105,7 +105,7 @@ Commit: `docs: scope Dreamina 3D production release to Blender`
 - Produces: `verify_result_artifact(artifact: Mapping[str, object]) -> dict[str, object]`.
 - Consumes: a regular-file path plus mandatory lowercase SHA-256.
 
-- [ ] **Step 1: Write failing artifact-completeness tests**
+- [x] **Step 1: Write failing artifact-completeness tests**
 
 ```python
 def test_succeeded_without_artifact_is_rejected(self):
@@ -121,23 +121,23 @@ def test_download_rehashes_expected_digest(self):
     self.assertEqual(result["sha256"], digest)
 ```
 
-- [ ] **Step 2: Run RED tests**
+- [x] **Step 2: Run RED tests**
 
 Run: `/usr/local/bin/python3 -m unittest tests.test_design_handoff -v`
 
 Expected: missing artifact/path/hash cases currently return success or an unverified path.
 
-- [ ] **Step 3: Implement mandatory artifact verification**
+- [x] **Step 3: Implement mandatory artifact verification**
 
 Require `artifact.path`, `artifact.sha256`, a non-symlink regular file, positive byte size, and a matching computed SHA-256. Download mode must accept an expected digest and return `{path, sha256, bytes}` only after matching it. Any missing field or mismatch raises `ArtifactMismatchError`.
 
-- [ ] **Step 4: Run GREEN and mutation checks**
+- [x] **Step 4: Run GREEN and mutation checks**
 
 Run: `/usr/local/bin/python3 -m unittest tests.test_design_handoff tests.test_e2e_fixture_pipeline -v`
 
 Manually verify that removing the mandatory-path branch makes at least one new test fail.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 Commit: `fix: require verified Dreamina result artifacts`
 

@@ -151,12 +151,24 @@ def cmd_query(args) -> int:
             "artifact": {"sha256": "f" * 64, "path": str(mismatch_path)},
         }))
         return 0
+    if force == "missing_artifact":
+        Path(args.receipt).write_text(json.dumps({"status": "succeeded"}))
+        return 0
+    if force == "missing_file":
+        Path(args.receipt).write_text(json.dumps({
+            "status": "succeeded",
+            "artifact": {"sha256": "a" * 64, "path": str(Path(args.state_dir) / "missing.mp4")},
+        }))
+        return 0
     if force == "unknown":
         Path(args.receipt).write_text(json.dumps({"status": "unknown"}))
         return 2
+    output = Path(args.output) if args.output else Path(args.state_dir) / "fake_output.mp4"
+    output.write_bytes(b"FAKE_MEDIA_BYTES")
+    digest = hashlib.sha256(output.read_bytes()).hexdigest()
     Path(args.receipt).write_text(json.dumps({
         "status": "succeeded",
-        "artifact": {"sha256": "1" * 64, "path": "/tmp/fake_output.mp4"},
+        "artifact": {"sha256": digest, "path": str(output)},
     }))
     return 0
 
