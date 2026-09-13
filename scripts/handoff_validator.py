@@ -28,7 +28,7 @@ MAX_FPS = 120.0
 MIN_FPS = 1.0
 
 DEFAULT_VERSION_RANGES: dict[str, Sequence[tuple[str, str]]] = {
-    "codex-blender": [("0.1.0", "0.1.99")],
+    "codex-blender": [("0.1.0", "0.2.99")],
     "codex-maya": [("0.1.0", "0.1.99")],
 }
 

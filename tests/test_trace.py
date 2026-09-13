@@ -25,6 +25,8 @@ SKILLS = (
     "codex-dreamina-3d-from-blender",
     "codex-dreamina-3d-from-maya",
     "codex-dreamina-3d-resume",
+    "codex-dreamina-3d-jimeng-web",
+    "codex-dreamina-3d-auto-seedance",
 )
 DIMENSIONS = ("T", "R", "A", "C", "E")
 SUB_ITEMS_PER_DIMENSION = 4
@@ -42,7 +44,7 @@ def _evaluate(skill: str) -> dict:
 
 @unittest.skipUnless(TRACE_SCRIPT.is_file(), f"TRACE evaluator not installed at {TRACE_SCRIPT}")
 class TraceEvaluationTests(unittest.TestCase):
-    def test_all_four_skills_evaluate(self) -> None:
+    def test_all_skills_evaluate(self) -> None:
         for skill in SKILLS:
             with self.subTest(skill=skill):
                 report = _evaluate(skill)
@@ -86,7 +88,7 @@ class TraceEvaluationTests(unittest.TestCase):
         doc = (ROOT / "docs" / "verification" / "trace.md").read_text(encoding="utf-8")
         for skill in SKILLS:
             self.assertIn(skill, doc, f"trace.md does not record {skill}")
-        self.assertIn("skill_trace = 4/4", doc)
+        self.assertIn("skill_trace = 6/6", doc)
 
 
 if __name__ == "__main__":

@@ -1,6 +1,6 @@
 {
   "name": "codex-dreamina-3d",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Orchestrate Blender or Maya preview artifacts into verified Dreamina 3D render videos.",
   "author": {"name": "Full Stack Skills / PartMe.AI", "url": "https://github.com/partme-ai"},
   "homepage": "https://github.com/partme-ai/codex-dreamina-3d-plugin",

@@ -27,6 +27,8 @@ REQUIRED_SKILLS = (
     "codex-dreamina-3d-from-blender",
     "codex-dreamina-3d-from-maya",
     "codex-dreamina-3d-resume",
+    "codex-dreamina-3d-jimeng-web",
+    "codex-dreamina-3d-auto-seedance",
 )
 
 FRONTMATTER_RE = re.compile(r"^---\n(.*?)\n---\n", re.DOTALL)
@@ -105,6 +107,17 @@ class RouterSkillTests(unittest.TestCase):
         _, body = _load_skill("codex-dreamina-3d-use")
         self.assertIn("discover_companions", body)
         self.assertIn("select_companion", body)
+
+    def test_router_exposes_preview_web_and_automatic_seedance_entries(self) -> None:
+        _, body = _load_skill("codex-dreamina-3d-use")
+        for route in ("preview_only", "jimeng_web", "auto_seedance"):
+            self.assertIn(route, body)
+        self.assertIn("JimengLinkReady", body)
+        self.assertIn("Completed", body)
+
+    def test_bounded_route_skills_exist(self) -> None:
+        for name in ("codex-dreamina-3d-jimeng-web", "codex-dreamina-3d-auto-seedance"):
+            self.assertTrue((SKILLS / name / "SKILL.md").is_file(), f"missing route skill: {name}")
 
 
 class ResumeSkillTests(unittest.TestCase):

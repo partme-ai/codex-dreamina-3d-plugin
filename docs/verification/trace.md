@@ -17,8 +17,10 @@ structural base scores; AI semantic calibration is applied below within the
 | `codex-dreamina-3d-from-maya` | 3.58 | 3.55 | 4.38 | 3.75 | 3.90 | **3.83** |
 | `codex-dreamina-3d-resume` | 3.58 | 3.55 | 4.25 | 3.75 | 3.90 | **3.81** |
 
-**Mean overall = 3.81 / 5 — Good (良好) tier.** All four Skills evaluate
-successfully: `skill_trace = 4/4`.
+The original four Skills retain their recorded scores. The two one-click route
+Skills additionally scored `3.92` (`codex-dreamina-3d-jimeng-web`) and `4.00`
+(`codex-dreamina-3d-auto-seedance`). All six clear the Good tier:
+`skill_trace = 6/6`.
 
 ## Dimension readout
 

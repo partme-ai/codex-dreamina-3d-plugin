@@ -13,13 +13,13 @@ NAME_PATTERN = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 # Strict semver, per the Codex plugin contract. The optional build metadata
 # suffix carries Codex's local-development cachebuster (see
 # `plugin-creator/references/installing-and-updating.md`), e.g.
-# `0.1.0+codex.20260912062630`.
+# `0.2.0+codex.20260912062630`.
 SEMVER_RE = re.compile(
     r"^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)"
     r"(?:-(?:0|[1-9]\d*|\d*[A-Za-z-][0-9A-Za-z-]*)(?:\.(?:0|[1-9]\d*|\d*[A-Za-z-][0-9A-Za-z-]*))*)?"
     r"(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$"
 )
-FOUNDATION_BASE_VERSION = "0.1.0"
+FOUNDATION_BASE_VERSION = "0.2.0"
 SECRET_PATTERNS = (
     re.compile(rb"AIza[0-9A-Za-z_-]{20,}"),
     re.compile(rb"-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----"),
@@ -43,7 +43,7 @@ def load_json(target: Path) -> dict:
 
 def version_base(version: str) -> str:
     """Strip any build metadata so a Codex cachebuster suffix does not fail the
-    foundation check: ``0.1.0+codex.20260912`` -> ``0.1.0``."""
+    foundation check: ``0.2.0+codex.20260912`` -> ``0.2.0``."""
     return version.split("+", 1)[0]
 
 
@@ -142,4 +142,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-
