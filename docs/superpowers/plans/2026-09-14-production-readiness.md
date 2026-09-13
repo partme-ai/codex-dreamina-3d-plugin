@@ -252,7 +252,7 @@ Run:
 /usr/local/bin/python3 -m unittest tests.test_mcp_design_client tests.test_auto_orchestrator tests.test_skills tests.test_trace -v
 ```
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 Commit: `feat: bind Dreamina 3D orchestration to Design MCP`
 
@@ -306,7 +306,7 @@ Run:
 /usr/local/bin/python3 -m unittest discover -s tests
 ```
 
-- [x] **Step 7: Commit**
+- [ ] **Step 7: Commit**
 
 Commit: `fix: enforce Connector-only official uploader boundaries`
 
@@ -358,7 +358,7 @@ python3.13 -m venv .ci-venv
 
 Expected: zero failures and zero required skips.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 Commit: `ci: enforce complete Dreamina 3D production gates`
 
@@ -375,15 +375,15 @@ Commit: `ci: enforce complete Dreamina 3D production gates`
 **Interfaces:**
 - Produces: one evidence record linking preview receipt, policy fingerprint, approval, submit ID, query history, download receipt, and final SHA-256.
 
-- [ ] **Step 1: Re-run preview-only Blender acceptance**
+- [x] **Step 1: Re-run preview-only Blender acceptance**
 
 Use Blender 5.2.1 LTS, one temporary Cube/Camera scene, 48 frames, and an approved temporary output root. Validate H.264 MP4 metadata, restoration, receipt hash, and orchestrator re-hash.
 
-- [ ] **Step 2: Exercise Dreamina MCP read-only tools**
+- [x] **Step 2: Exercise Dreamina MCP read-only tools**
 
 From the public installed `codex-dreamina-design` version, initialize MCP and call `dreamina_cli_status` and `dreamina_account`. Record only redacted readiness and version fields.
 
-- [ ] **Step 3: Exercise native approval denial**
+- [x] **Step 3: Exercise native approval denial**
 
 Attempt the exact automatic request through `dreamina_submit_video`, choose Cancel in the native dialog, and assert zero new submit IDs and unchanged task history.
 
@@ -391,11 +391,11 @@ Attempt the exact automatic request through `dreamina_submit_video`, choose Canc
 
 Use minimum Seedance 2.5 resolution/duration. Persist the one submit ID, interrupt after acceptance, restart the orchestrator, query the same ID to terminal state, download, ffprobe, and independently hash. Do not reuse historical CLI-only canary evidence for this MCP gate.
 
-- [ ] **Step 5: Exercise official Web path conditionally**
+- [x] **Step 5: Exercise official Web path conditionally**
 
 If the user-installed official add-on is present and enabled, run one foreground Connector handoff and stop at `JimengLinkReady`; do not submit Seedance from the Web path. If absent, retain `BLOCKED_MISSING_OFFICIAL_ADDON` and mark `jimeng_web` as an optional unavailable capability rather than production-verified.
 
-- [ ] **Step 6: Confirm no cross-gate inflation**
+- [x] **Step 6: Confirm no cross-gate inflation**
 
 The evidence table must separately record `PreviewValidated`, `JimengLinkReady`, `Submitted`, `Querying`, and `Completed`. No earlier state may satisfy a later gate.
 

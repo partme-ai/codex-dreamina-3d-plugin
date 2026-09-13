@@ -9,6 +9,8 @@ Dreamina (Seedance 2.5) half of the Dreamina 3D pipeline.
 |-------------------------------------------------|-------------------|--------------------------------------------------------------------|
 | `paid_seedance_canary`                          | `PASS`            | Authorized Seedance 2.5 480p/4s canary reached success and downloaded |
 | `codex_dreamina_design_receipt_roundtrip`       | `PASS` (fixture)  | Fake Design adapter exercises capabilities/quote/approve/submit/query/download |
+| `dreamina_mcp_read_only`                        | `PASS`            | Installed MCP 0.3.0 initialized; trusted CLI and account readiness returned |
+| `dreamina_mcp_native_deny`                      | `PASS`            | Cancel returned `ApprovalDeniedError`; no operation or submit ID was created |
 
 ## Paid canary evidence
 
@@ -47,7 +49,7 @@ was not treated as artifact acceptance.
 
 ## What was exercised offline
 
-The fake Design adapter (`tests/fakes/fake_design_adapter.py`) walks
+The legacy fake Design adapter (`tests/fakes/fake_design_adapter.py`) walks
 the full capability → quote → approve → submit → query → download loop
 without ever touching the network. The orchestrator's
 `scripts/design_handoff.py` accepts the fake adapter's receipts and
@@ -61,8 +63,8 @@ rejects them when:
 - the artifact's declared sha256 does not match the on-disk file
   (`ArtifactMismatchError`).
 
-These classifications are the same ones a real adapter would surface,
-because the orchestrator inspects only the public receipt interface.
+That executable route is now fixture-only. Production uses
+`McpDesignClient` and the four typed Dreamina Design MCP tools.
 
 ## End-to-end completion gate
 

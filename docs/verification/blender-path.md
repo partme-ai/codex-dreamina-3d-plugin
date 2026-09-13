@@ -7,7 +7,8 @@ Blender half of the Dreamina 3D pipeline.
 
 | Gate                                            | Status            | Reason                                                            |
 |-------------------------------------------------|-------------------|--------------------------------------------------------------------|
-| `local_blender_runtime`                         | `PASS`            | Blender 5.2.1 preview-only MP4 and shared receipt validated |
+| `local_blender_runtime`                         | `PASS`            | Fresh managed Harness + installed implementation produced and validated MP4 |
+| `public_blender_adapter_entry`                  | `FAIL`            | 0.2.0 `bin/blender_adapter` imports a missing module |
 | `codex_blender_receipt_recorded`                | `PASS` (fixture)  | Validated via the fake Blender adapter (`tests/fakes/fake_blender_adapter.py`) |
 | `blender_to_design_receipt_chain`               | `PASS` (fixture)  | Fake Design adapter accepted the preview receipt without a network call |
 
@@ -47,12 +48,16 @@ $ python3 -c '... discover_companions((installed_plugins_root,)) ...'
 codex-blender 0.1.0 bin/blender_adapter ('1.0.0',)
 ```
 
-The `codex-blender` source now publishes `bin/blender_adapter` with receipt
-contract `1.0.0`. An authorized Blender 5.2.1 run produced a 320×180, 24 fps,
-2-second H.264 MP4 with SHA-256
-`2a38c024311534e8ddcced9927a9c4fe64a5c05cba91cd5e7879712ebced8e6e` and
-`restoration.status=confirmed`. This orchestrator copied and independently
-re-hashed the artifact to the same digest.
+Fresh 2026-09-14 evidence separates runtime implementation from packaging.
+The installed `scripts/dreamina_adapter.py` connected to a managed Blender
+5.2.1 Harness and produced a 48-frame, 1920×1080, 24 fps, 2-second H.264 MP4.
+The receipt declared 104428 bytes and SHA-256
+`b8b5b7607d29b4ac02da83117078b491badd22e0a81e995aa09c0402e18847bb`;
+ffprobe and the orchestrator independently confirmed those values.
+
+The public `bin/blender_adapter` entry still imports a missing
+`scripts/blender_adapter.py`, so distribution readiness remains blocked until
+the entry is corrected and the installed-cache path is re-run.
 
 ## Determinism guarantees preserved
 

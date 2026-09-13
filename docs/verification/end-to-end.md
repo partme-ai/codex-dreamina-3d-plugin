@@ -9,7 +9,8 @@ Dreamina 3D pipeline.
 |---------------------------------------------------|-------------------|------------------------------------------------------|
 | `fixture_blender_to_design_e2e`                   | `PASS` (fixture)  | Driven by fake Blender + fake Design adapters         |
 | `fixture_maya_to_design_e2e`                      | `PASS` (fixture)  | Driven by fake Maya + fake Design adapters            |
-| `real_blender_preview_handoff`                    | `PASS`            | Blender 5.2.1 preview and orchestrator receipt re-hash passed |
+| `real_blender_preview_handoff`                    | `PASS`            | Managed Blender 5.2.1 + installed implementation; receipt re-hash passed |
+| `public_blender_adapter_entry`                    | `FAIL`            | Installed 0.2.0 bin entry imports a missing module |
 | `real_blender_to_design_e2e`                      | `NOT_RUN`         | Dreamina Design submission was outside this authorization |
 | `real_maya_to_design_e2e`                         | `NOT_RUN`         | No real Maya install or callable companion adapter   |
 | `real_blender_to_seedance_cli_e2e`                | `PASS`            | Authorized Seedance 2.5 canary passed artifact verification |
@@ -58,8 +59,9 @@ artifact hash mismatch, restoration unknown, and timeout → query-only.
 The following items must be exercised in an authorized environment
 before production release:
 
-1. Publish and validate the real six-mode Dreamina Design adapter executable;
-   the successful CLI canary did not exercise `design_handoff.py`'s receipt contract.
+1. Restore and package the missing Blender adapter implementation, then run a
+   fresh Blender 5.2.1 preview and receipt re-hash.
 2. Real Maya adapter smoke test, if Maya is restored to release scope.
-3. Resolve the vendored Blender uploader license/provenance decision.
+3. Keep the official Web route optional until the user-installed official
+   uploader is present; the factory-startup probe currently finds none.
 4. Commit, push, run remote CI, reinstall public plugins, and verify source/cache parity.
