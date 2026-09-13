@@ -96,6 +96,7 @@ class ExecutionPolicy:
     max_charge: Decimal | None = None
     permit_one_submission: bool = False
     permit_reference_upload: bool = False
+    permit_unquoted_exact_request: bool = False
 
     @classmethod
     def auto_with_budget(
@@ -103,6 +104,7 @@ class ExecutionPolicy:
         max_charge: str | Decimal,
         permit_one_submission: bool,
         permit_reference_upload: bool,
+        permit_unquoted_exact_request: bool = False,
     ) -> "ExecutionPolicy":
         try:
             amount = Decimal(str(max_charge))
@@ -117,6 +119,7 @@ class ExecutionPolicy:
             max_charge=amount,
             permit_one_submission=True,
             permit_reference_upload=bool(permit_reference_upload),
+            permit_unquoted_exact_request=bool(permit_unquoted_exact_request),
         )
 
     def to_dict(self) -> dict[str, Any]:
@@ -126,6 +129,7 @@ class ExecutionPolicy:
             "max_charge": str(self.max_charge) if self.max_charge is not None else None,
             "permit_one_submission": self.permit_one_submission,
             "permit_reference_upload": self.permit_reference_upload,
+            "permit_unquoted_exact_request": self.permit_unquoted_exact_request,
         }
 
 
@@ -204,6 +208,7 @@ def new_job(job_id: str, execution_policy: ExecutionPolicy | None = None) -> dic
         "approval": None,
         "submit": None,
         "result": None,
+        "submission_intent": None,
         "error_category": None,
         "execution_policy": (execution_policy or ExecutionPolicy(ExecutionMode.INTERACTIVE)).to_dict(),
         "history": [],
@@ -241,6 +246,11 @@ class JobLedger:
         return load_ledger(self.path)
 
     def write(self, payload: dict) -> None:
+        if self.path.is_file():
+            existing = load_ledger(self.path)
+            policy_locked = existing.get("quote") is not None or existing.get("submission_intent") is not None
+            if policy_locked and payload.get("execution_policy") != existing.get("execution_policy"):
+                raise InvalidTransitionError("execution policy is immutable after quoting begins")
         _scrub(payload)
         _atomic_write(self.path, payload)
 

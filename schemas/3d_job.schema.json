@@ -15,6 +15,7 @@
     "preview",
     "quote_inputs",
     "submit",
+    "submission_intent",
     "history"
   ],
   "additionalProperties": false,
@@ -52,8 +53,9 @@
     "created_at": {"type": "string", "format": "date-time"},
     "updated_at": {"type": "string", "format": "date-time"},
     "error_category": {
-      "type": "string",
+      "type": ["string", "null"],
       "enum": [
+        null,
         "missing_companion",
         "stale_preview",
         "hash_mismatch",
@@ -69,17 +71,27 @@
     "execution_policy": {
       "type": "object",
       "description": "Non-secret automatic-run envelope; immutable once quoting begins.",
-      "required": ["mode", "max_charge", "permit_one_submission", "permit_reference_upload"],
+      "required": ["mode", "max_charge", "permit_one_submission", "permit_reference_upload", "permit_unquoted_exact_request"],
       "additionalProperties": false,
       "properties": {
         "mode": {"type": "string", "enum": ["interactive", "auto_with_budget", "review_only"]},
         "max_charge": {"type": ["string", "null"], "pattern": "^[0-9]+(?:\\.[0-9]+)?$"},
         "permit_one_submission": {"type": "boolean"},
-        "permit_reference_upload": {"type": "boolean"}
+        "permit_reference_upload": {"type": "boolean"},
+        "permit_unquoted_exact_request": {"type": "boolean"}
+      }
+    },
+    "submission_intent": {
+      "type": ["object", "null"],
+      "additionalProperties": false,
+      "required": ["request_fingerprint", "status"],
+      "properties": {
+        "request_fingerprint": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+        "status": {"type": "string", "enum": ["pending", "accepted", "unknown"]}
       }
     },
     "selected_companion": {
-      "type": "object",
+      "type": ["object", "null"],
       "additionalProperties": false,
       "properties": {
         "plugin_id": {"type": "string"},
@@ -88,7 +100,7 @@
       }
     },
     "preview": {
-      "type": "object",
+      "type": ["object", "null"],
       "description": "Immutable reference to the validated preview receipt.",
       "required": ["artifact_id", "sha256", "producer_plugin", "producer_version"],
       "additionalProperties": false,
@@ -100,7 +112,7 @@
       }
     },
     "quote_inputs": {
-      "type": "object",
+      "type": ["object", "null"],
       "description": "Inputs to the most recent quote. Any change to these values invalidates Quoted/Approved.",
       "required": ["prompt", "model", "resolution", "ratio", "duration_seconds"],
       "additionalProperties": false,
@@ -117,7 +129,7 @@
       }
     },
     "submit": {
-      "type": "object",
+      "type": ["object", "null"],
       "description": "Persisted only after the design plugin returns a submit id.",
       "additionalProperties": false,
       "properties": {
@@ -131,7 +143,7 @@
       }
     },
     "result": {
-      "type": "object",
+      "type": ["object", "null"],
       "description": "Final artifact reference; populated only on Completed.",
       "additionalProperties": false,
       "properties": {
@@ -140,6 +152,21 @@
         "path": {"type": "string"}
       }
     },
+    "preview_hash_validated": {"type": "boolean"},
+    "resolved_capability": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "quote": {
+      "type": ["object", "null"],
+      "additionalProperties": true
+    },
+    "approval": {
+      "type": ["object", "null"],
+      "additionalProperties": true
+    },
+    "approved_by": {"type": "string"},
+    "approved_at": {"type": "string", "format": "date-time"},
     "history": {
       "type": "array",
       "description": "Append-only transition log.",

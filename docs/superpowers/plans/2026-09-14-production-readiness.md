@@ -173,29 +173,29 @@ def run_until_blocked(
 ) -> OrchestrationResult: ...
 ```
 
-- [ ] **Step 1: Write failing reducer tests**
+- [x] **Step 1: Write failing reducer tests**
 
 Cover: preview mismatch; missing upload permission; account not ready; authoritative quote above cap; quote unavailable with a numeric cap; exact unquoted request without explicit permission; native approval denial; one accepted submit; crash after submit-ID persistence; `Submitted`/`Querying`/`Unknown` query only; remote failure; download mismatch; verified completion.
 
-- [ ] **Step 2: Run RED tests**
+- [x] **Step 2: Run RED tests**
 
 Run: `/usr/local/bin/python3 -m unittest tests.test_auto_orchestrator tests.test_job_ledger -v`
 
 Expected: `auto_orchestrator` does not exist and the immutable policy envelope is incomplete.
 
-- [ ] **Step 3: Complete the policy envelope**
+- [x] **Step 3: Complete the policy envelope**
 
 Persist closed fields: `mode`, decimal `max_charge`, `permit_unquoted_exact_request`, `permit_one_submission`, `permit_reference_upload`, exact model/resolution/duration, approved download root, and a one-time approval-consumed marker. Reject policy edits after `Quoted`. Backward-compatible `auto_with_budget` stops with `QUOTE_UNAVAILABLE` when `max_charge` is set but the Design client cannot supply an authoritative preflight cost.
 
-- [ ] **Step 4: Implement legal state advancement**
+- [x] **Step 4: Implement legal state advancement**
 
 Validate the preview before any MCP action. Persist submission intent before `dreamina_submit_video`; persist `submit_id` before returning `Submitted`. Never call submit from `Submitted`, `Querying`, `Unknown`, `Failed`, or `Completed`. Completion calls the Task 2 verifier before writing `result`.
 
-- [ ] **Step 5: Prove crash/restart recovery**
+- [x] **Step 5: Prove crash/restart recovery**
 
 Create a new `JobLedger` instance against the same file after each injected crash point. Assert that the resumed engine queries the stored submit ID and records zero further submit calls.
 
-- [ ] **Step 6: Run GREEN tests and commit**
+- [x] **Step 6: Run GREEN tests and commit**
 
 Run: `/usr/local/bin/python3 -m unittest tests.test_auto_orchestrator tests.test_job_ledger tests.test_design_handoff -v`
 

@@ -103,6 +103,20 @@ class JobStateEnumTests(unittest.TestCase):
         self.assertEqual({s.value for s in JobState}, expected)
 
 
+class LedgerSchemaTests(unittest.TestCase):
+    def test_new_and_completed_jobs_match_the_closed_schema(self) -> None:
+        from jsonschema import Draft7Validator
+
+        schema = json.loads((ROOT / "schemas" / "3d_job.schema.json").read_text())
+        validator = Draft7Validator(schema)
+        with tempfile.TemporaryDirectory() as tmp:
+            ledger = JobLedger(Path(tmp) / "job.json")
+            ledger.write(new_job("job-schema-001"))
+            self.assertEqual(list(validator.iter_errors(ledger.read())), [])
+            _drive_to(ledger, JobState.COMPLETED)
+            self.assertEqual(list(validator.iter_errors(ledger.read())), [])
+
+
 class TransitionTests(unittest.TestCase):
     def test_allowed_path_succeeds(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -150,6 +164,19 @@ class TransitionTests(unittest.TestCase):
 
 
 class ExecutionPolicyTests(unittest.TestCase):
+    def test_policy_cannot_change_after_quote(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            ledger = JobLedger(Path(tmp) / "job.json")
+            policy = ExecutionPolicy.auto_with_budget("3.20", True, True)
+            ledger.write(new_job("job-immutable", execution_policy=policy))
+            _drive_to(ledger, JobState.CAPABILITY_RESOLVED)
+            quote = QuoteInputs("p", "seedance-2.5", "1280x720", "16:9", 4.0)
+            ledger.record_quote(quote, {"amount": "3.00"})
+            tampered = ledger.read()
+            tampered["execution_policy"]["max_charge"] = "99.00"
+            with self.assertRaises(InvalidTransitionError):
+                ledger.write(tampered)
+
     def test_auto_policy_stops_quote_that_exceeds_cap(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             ledger = JobLedger(Path(tmp) / "job.json")
