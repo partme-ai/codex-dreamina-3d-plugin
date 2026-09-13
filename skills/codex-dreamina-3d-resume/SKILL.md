@@ -17,6 +17,12 @@ single source of truth for what has already happened.
 
 ## Workflow
 
+For a persisted `auto_with_budget` job, automatically resume only the safe
+next state: capability/quote work before a submission, or query/download work
+after its stored submit identifier. Never convert a budget stop, missing web
+prerequisite, failed validation, `Unknown`, or failed job into a new paid
+submission without a new user instruction.
+
 1. **Load.** `JobLedger.read()` on the user's job file. If the file does
    not exist, stop and ask the user to specify a valid `job_id`.
 2. **Map state → next action.**

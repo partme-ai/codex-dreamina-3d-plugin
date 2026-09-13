@@ -17,6 +17,22 @@ The user wants a Dreamina 3D render from a Blender scene. Companion
 
 ## Workflow
 
+### Automatic run policy
+
+When the user provides one `auto_with_budget` envelope — approved reference
+upload, model/resolution/duration preferences, a maximum charge, and
+permission for one remote submission — perform the following workflow without
+asking at every state transition. Resolve capability, validate the preview,
+obtain and compare the quote, submit once only when it is within the cap,
+query the recorded identifier, download, and independently verify the final
+artifact. Return one final artifact inventory.
+
+Stop and ask only when the quote exceeds the cap, a required reference was
+not authorized for upload, a platform-mandated confirmation or web
+prerequisite is pending, validation fails, or recovery would require another
+paid submission. `interactive` retains the review at each gate; `review_only`
+does not upload or submit.
+
 1. **Inspect.** Call `inspect_scene(executable=codex-blender_adapter,
    scene=<user_scene>)`. Reject if the scene cannot be inspected.
 2. **Specify preview.** Collect user-approved camera, frame range, output

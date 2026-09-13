@@ -19,6 +19,7 @@ import sys
 import tempfile
 import threading
 import unittest
+from decimal import Decimal
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -26,6 +27,8 @@ sys.path.insert(0, str(ROOT / "scripts"))
 
 from job_ledger import (  # noqa: E402
     ALLOWED_TRANSITIONS,
+    BudgetExceededError,
+    ExecutionPolicy,
     InvalidTransitionError,
     JobLedger,
     JobState,
@@ -144,6 +147,36 @@ class TransitionTests(unittest.TestCase):
             ledger.transition(JobState.DCC_SELECTED, selected_companion={"plugin_id": "codex-blender", "version": "0.1.0", "contract_version": "1.0.0"})
             r1 = ledger.read()["revision"]
             self.assertGreater(r1, r0)
+
+
+class ExecutionPolicyTests(unittest.TestCase):
+    def test_auto_policy_stops_quote_that_exceeds_cap(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            ledger = JobLedger(Path(tmp) / "job.json")
+            policy = ExecutionPolicy.auto_with_budget("3.20", permit_one_submission=True, permit_reference_upload=True)
+            ledger.write(new_job("job-1", execution_policy=policy))
+            _drive_to(ledger, JobState.CAPABILITY_RESOLVED)
+            quote = QuoteInputs("p", "seedance-2.5", "1280x720", "16:9", 4.0)
+            with self.assertRaises(BudgetExceededError):
+                ledger.record_quote(quote, {"amount": "3.21", "currency": "CNY"})
+            self.assertEqual(ledger.read()["state"], JobState.CAPABILITY_RESOLVED.value)
+
+    def test_auto_policy_records_within_cap_quote(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            ledger = JobLedger(Path(tmp) / "job.json")
+            policy = ExecutionPolicy.auto_with_budget("3.20", permit_one_submission=True, permit_reference_upload=True)
+            ledger.write(new_job("job-1", execution_policy=policy))
+            _drive_to(ledger, JobState.CAPABILITY_RESOLVED)
+            quote = QuoteInputs("p", "seedance-2.5", "1280x720", "16:9", 4.0)
+            ledger.record_quote(quote, {"amount": "3.20", "currency": "CNY"})
+            result = ledger.read()
+            self.assertEqual(result["state"], JobState.QUOTED.value)
+            self.assertEqual(result["execution_policy"]["mode"], "auto_with_budget")
+
+    def test_policy_cap_is_decimal_and_non_negative(self) -> None:
+        self.assertEqual(ExecutionPolicy.auto_with_budget(Decimal("0"), True, False).max_charge, Decimal("0"))
+        with self.assertRaises(ValueError):
+            ExecutionPolicy.auto_with_budget("-0.01", True, False)
 
 
 class QuoteInvalidationTests(unittest.TestCase):

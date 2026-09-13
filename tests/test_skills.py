@@ -124,5 +124,14 @@ class ResumeSkillTests(unittest.TestCase):
             self.assertIn(state, body, f"resume Skill does not map state {state}")
 
 
+class AutomaticPolicySkillTests(unittest.TestCase):
+    def test_blender_skill_describes_one_time_automatic_envelope(self) -> None:
+        _, body = _load_skill("codex-dreamina-3d-from-blender")
+        self.assertIn("auto_with_budget", body)
+        self.assertIn("maximum charge", body)
+        self.assertIn("submit once", body)
+        self.assertIn("quote exceeds the cap", body)
+
+
 if __name__ == "__main__":
     unittest.main()

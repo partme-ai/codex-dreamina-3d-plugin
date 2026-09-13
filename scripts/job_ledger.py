@@ -21,6 +21,7 @@ import os
 import re
 import tempfile
 from dataclasses import dataclass
+from decimal import Decimal, InvalidOperation
 from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
@@ -73,6 +74,59 @@ class StaleReceiptError(RuntimeError):
 
 class LedgerCorruptError(RuntimeError):
     pass
+
+
+class BudgetExceededError(RuntimeError):
+    """Raised before approval when an automatic policy's quote exceeds its cap."""
+
+
+class ExecutionMode(str, Enum):
+    """Controls whether a job pauses for every review or runs within one envelope."""
+
+    INTERACTIVE = "interactive"
+    AUTO_WITH_BUDGET = "auto_with_budget"
+    REVIEW_ONLY = "review_only"
+
+
+@dataclass(frozen=True)
+class ExecutionPolicy:
+    """Non-secret, immutable authorization envelope for a 3D generation job."""
+
+    mode: ExecutionMode
+    max_charge: Decimal | None = None
+    permit_one_submission: bool = False
+    permit_reference_upload: bool = False
+
+    @classmethod
+    def auto_with_budget(
+        cls,
+        max_charge: str | Decimal,
+        permit_one_submission: bool,
+        permit_reference_upload: bool,
+    ) -> "ExecutionPolicy":
+        try:
+            amount = Decimal(str(max_charge))
+        except (InvalidOperation, ValueError) as exc:
+            raise ValueError("max_charge must be decimal") from exc
+        if not amount.is_finite() or amount < 0:
+            raise ValueError("max_charge must be non-negative")
+        if not permit_one_submission:
+            raise ValueError("auto_with_budget requires permit_one_submission")
+        return cls(
+            ExecutionMode.AUTO_WITH_BUDGET,
+            max_charge=amount,
+            permit_one_submission=True,
+            permit_reference_upload=bool(permit_reference_upload),
+        )
+
+    def to_dict(self) -> dict[str, Any]:
+        """Serialize the policy without account, credential, or prompt content."""
+        return {
+            "mode": self.mode.value,
+            "max_charge": str(self.max_charge) if self.max_charge is not None else None,
+            "permit_one_submission": self.permit_one_submission,
+            "permit_reference_upload": self.permit_reference_upload,
+        }
 
 
 @dataclass(frozen=True)
@@ -132,7 +186,7 @@ def _atomic_write(path: Path, payload: dict) -> None:
         raise
 
 
-def new_job(job_id: str) -> dict:
+def new_job(job_id: str, execution_policy: ExecutionPolicy | None = None) -> dict:
     if not re.match(r"^[a-z0-9][a-z0-9_-]{2,63}$", job_id):
         raise ValueError("job_id must be a lowercase kebab-case identifier")
     now = _utcnow()
@@ -151,6 +205,7 @@ def new_job(job_id: str) -> dict:
         "submit": None,
         "result": None,
         "error_category": None,
+        "execution_policy": (execution_policy or ExecutionPolicy(ExecutionMode.INTERACTIVE)).to_dict(),
         "history": [],
     }
 
@@ -264,6 +319,24 @@ class JobLedger:
         self.write(payload)
         return payload
 
+    def record_quote(self, quote_inputs: QuoteInputs, quote: Mapping[str, Any]) -> dict:
+        """Persist a quote only when it is within an automatic-run budget cap."""
+        payload = self.read()
+        if JobState(payload["state"]) is not JobState.CAPABILITY_RESOLVED:
+            raise InvalidTransitionError("quote can only be recorded from CapabilityResolved")
+        policy = payload.get("execution_policy") or {}
+        if policy.get("mode") == ExecutionMode.AUTO_WITH_BUDGET.value:
+            max_charge = Decimal(str(policy.get("max_charge")))
+            try:
+                observed_amount = Decimal(str(quote.get("amount")))
+            except (InvalidOperation, ValueError) as exc:
+                raise BudgetExceededError("automatic quote must include a decimal amount") from exc
+            if not observed_amount.is_finite() or observed_amount > max_charge:
+                raise BudgetExceededError(
+                    f"quote amount {observed_amount} exceeds automatic budget {max_charge}"
+                )
+        return self.transition(JobState.QUOTED, quote_inputs=quote_inputs, quote=dict(quote))
+
 
 __all__ = [
     "SCHEMA_VERSION",
@@ -272,6 +345,9 @@ __all__ = [
     "InvalidTransitionError",
     "StaleReceiptError",
     "LedgerCorruptError",
+    "BudgetExceededError",
+    "ExecutionMode",
+    "ExecutionPolicy",
     "QuoteInputs",
     "JobLedger",
     "new_job",
