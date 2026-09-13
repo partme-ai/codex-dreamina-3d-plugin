@@ -1,10 +1,10 @@
 """Three-package validation (plan Task 6 / Task 8: "validate all three plugin
 packages").
 
-The Dreamina 3D pipeline spans three Codex plugin packages:
+The Blender production pipeline spans three Codex plugin packages:
 
   - codex-blender      (DCC preview producer)
-  - codex-maya         (DCC preview producer)
+  - codex-dreamina-design (paid generation MCP)
   - codex-dreamina-3d  (this orchestrator)
 
 Each ships its own ``scripts/validate_distribution.py``. This test runs all
@@ -18,6 +18,7 @@ actually exercised.
 
 from __future__ import annotations
 
+import os
 import subprocess
 import sys
 import unittest
@@ -26,13 +27,13 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 WORKSPACE = ROOT.parent
 SIBLINGS = {
-    "codex-blender": WORKSPACE / "codex-blender-plugin",
-    "codex-maya": WORKSPACE / "codex-maya-plugin",
+    "codex-blender": Path(os.environ.get("CODEX_BLENDER_REPO", WORKSPACE / "codex-blender-plugin")),
+    "codex-dreamina-design": Path(os.environ.get("CODEX_DREAMINA_DESIGN_REPO", WORKSPACE / "codex-dreamina-design-plugin")),
     "codex-dreamina-3d": ROOT,
 }
 EXPECTED_IDENTITY = {
     "codex-blender": "codex-blender",
-    "codex-maya": "codex-maya",
+    "codex-dreamina-design": "codex-dreamina-design",
     "codex-dreamina-3d": "codex-dreamina-3d",
 }
 
@@ -54,8 +55,8 @@ class ThreePackageValidationTests(unittest.TestCase):
     def test_codex_blender_package_validates(self) -> None:
         self._assert_validates("codex-blender")
 
-    def test_codex_maya_package_validates(self) -> None:
-        self._assert_validates("codex-maya")
+    def test_codex_dreamina_design_package_validates(self) -> None:
+        self._assert_validates("codex-dreamina-design")
 
     def test_codex_dreamina_3d_package_validates(self) -> None:
         self._assert_validates("codex-dreamina-3d")
@@ -75,7 +76,7 @@ class ThreePackageValidationTests(unittest.TestCase):
         missing = [label for label, repo in SIBLINGS.items() if not _validator_for(repo).is_file()]
         if missing:
             self.skipTest(f"packages not present in this workspace: {missing}")
-        self.assertEqual(sorted(SIBLINGS), ["codex-blender", "codex-dreamina-3d", "codex-maya"])
+        self.assertEqual(sorted(SIBLINGS), ["codex-blender", "codex-dreamina-3d", "codex-dreamina-design"])
 
 
 if __name__ == "__main__":

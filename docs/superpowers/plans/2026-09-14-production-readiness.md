@@ -306,7 +306,7 @@ Run:
 /usr/local/bin/python3 -m unittest discover -s tests
 ```
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 Commit: `fix: enforce Connector-only official uploader boundaries`
 
@@ -326,27 +326,27 @@ Commit: `fix: enforce Connector-only official uploader boundaries`
 **Interfaces:**
 - Produces: `python scripts/ci_gate.py --strict` with zero required skips.
 
-- [ ] **Step 1: Pin development dependencies**
+- [x] **Step 1: Pin development dependencies**
 
 Declare compatible ranges for `jsonschema` and `PyYAML`. CI installs only this file and uses `cache-dependency-path: requirements-dev.txt`.
 
-- [ ] **Step 2: Write failing strict-gate tests**
+- [x] **Step 2: Write failing strict-gate tests**
 
 `ci_gate.py --strict` must fail if Blender, Dreamina Design, TRACE evaluator, or installed-snapshot validation is skipped. Unit tests may retain skip behavior for developer convenience; the strict CI wrapper may not.
 
-- [ ] **Step 3: Materialize companion repositories in CI**
+- [x] **Step 3: Materialize companion repositories in CI**
 
 Checkout pinned Blender and Dreamina Design Git SHAs into sibling directories. Do not include Maya in the Blender-only production matrix. Run each companion's distribution validator with the same Python interpreter.
 
-- [ ] **Step 4: Package a repository-local TRACE gate**
+- [x] **Step 4: Package a repository-local TRACE gate**
 
 Use a pinned, licensed evaluator script or a deterministic repository-owned scenario evaluator. Remove the absolute `/Users/wandl/...` path from CI-critical tests.
 
-- [ ] **Step 5: Verify installed candidate without a personal marketplace**
+- [x] **Step 5: Verify installed candidate without a personal marketplace**
 
 Build a disposable marketplace/cache under runner temp, install the candidate, assert version/Skill inventory/content hashes, then remove only that disposable directory.
 
-- [ ] **Step 6: Run strict local rehearsal**
+- [x] **Step 6: Run strict local rehearsal**
 
 Run:
 

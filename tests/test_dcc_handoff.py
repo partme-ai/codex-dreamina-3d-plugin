@@ -43,18 +43,12 @@ def _python_executable() -> str:
 
 
 def _make_blender_executable() -> str:
-    """Return a shell shim that runs the fake Blender adapter through Python."""
-    wrapper = FAKES / ".blender_adapter.sh"
-    wrapper.write_text(f"#!/bin/sh\nexec {_python_executable()} {BLENDER} \"$@\"\n")
-    wrapper.chmod(0o755)
-    return str(wrapper)
+    """Return the executable fake without mutating tracked fixtures."""
+    return BLENDER
 
 
 def _make_maya_executable() -> str:
-    wrapper = FAKES / ".maya_adapter.sh"
-    wrapper.write_text(f"#!/bin/sh\nexec {_python_executable()} {MAYA} \"$@\"\n")
-    wrapper.chmod(0o755)
-    return str(wrapper)
+    return MAYA
 
 
 class InspectSceneTests(unittest.TestCase):

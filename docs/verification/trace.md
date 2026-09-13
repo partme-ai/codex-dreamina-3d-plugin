@@ -4,9 +4,12 @@ Plan gates covered: *"Run TRACE and forward scenarios"* (Task 5) and
 *"Run all offline unit/integration tests, plugin and Skill validators, TRACE,
 link audit and `git diff --check`"* (Task 7).
 
-Evaluator: `skill-trace-evaluation/scripts/trace_evaluate.py` (deterministic
-structural base scores; AI semantic calibration is applied below within the
-±0.3 rule).
+The historical scorecard below was produced with
+`skill-trace-evaluation/scripts/trace_evaluate.py`. CI now uses the
+repository-owned `scripts/trace_gate.py`, which checks the five TRACE
+dimensions as observable invariants and has no user-specific absolute path.
+The scored report remains design evidence; the repository gate is the release
+pass/fail authority.
 
 ## Summary
 
@@ -92,5 +95,6 @@ $ python3 /Users/wandl/.agents/skills/skill-trace-evaluation/scripts/trace_evalu
       --skill-dir skills/codex-dreamina-3d-use --format json
 ```
 
-`tests/test_trace.py` runs the evaluator for all four Skills and asserts each
-produces a complete five-dimension score set.
+`tests/test_trace.py` runs the repository-owned gate for all six Skills and
+asserts each passes T/R/A/C/E. `scripts/ci_gate.py --strict` also fails if this
+gate is unavailable or any required test is skipped.
