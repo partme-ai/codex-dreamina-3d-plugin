@@ -5,7 +5,7 @@ description: Automatically turn a validated DCC preview into an approved Seedanc
 
 # Automatic Seedance Entry
 
-Use when the user explicitly wants the validated Blender/Maya preview turned
+Use when the user explicitly wants the validated Blender preview turned
 into a final Seedance video automatically rather than opened in Jimeng Web.
 
 ## 能力边界说明
@@ -18,8 +18,9 @@ into a final Seedance video automatically rather than opened in Jimeng Web.
 
 ### ⚠ 需要用户确认
 
-- A paid request must have an exact model, resolution, duration and maximum
-  charge envelope.
+- A paid request must have an exact model, resolution, duration and either an
+  authoritative maximum-charge envelope or explicit `auto_exact_request`
+  permission when Dreamina exposes no quote API.
 - Dreamina authentication or Web compliance prerequisites may require user
   action.
 
@@ -32,10 +33,13 @@ into a final Seedance video automatically rather than opened in Jimeng Web.
 ## Workflow
 
 1. Require `PreviewValidated`; independently re-hash the local artifact.
-2. Call Dreamina Design MCP `dreamina_cli_status` and `dreamina_account`.
+2. Instantiate `McpDesignClient` over the host's MCP tool invoker. It may call
+   only `dreamina_cli_status`, `dreamina_account`, `dreamina_submit_video`, and
+   `dreamina_query_task`.
 3. Build the exact `multimodal2video` request from live capability data.
-4. Obtain the native paid-action approval bound to the request fingerprint and
-   maximum charge.
+4. Never invent a quote. If none is available, stop unless the exact request
+   has `auto_exact_request` authorization; native paid-action approval still
+   occurs inside `dreamina_submit_video`.
 5. Call `dreamina_submit_video` once and persist its submit ID before reporting
    `Submitted`.
 6. Call `dreamina_query_task` for the same ID until success, failure, or

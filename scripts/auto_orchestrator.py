@@ -162,7 +162,11 @@ def run_until_blocked(
 
     if state is JobState.QUERYING:
         submit_id = ledger.read()["submit"]["design_submit_id"]
-        query = _invoke(design_client, actions, "query", {"submit_id": submit_id})
+        query_arguments = {"submit_id": submit_id}
+        for key in ("poll_seconds", "download_dir", "approved_roots"):
+            if key in request:
+                query_arguments[key] = request[key]
+        query = _invoke(design_client, actions, "query", query_arguments)
         remote_status = str(query.get("status", "unknown")).lower()
         if remote_status in {"querying", "submitted", "running"}:
             return _result(ledger, actions)

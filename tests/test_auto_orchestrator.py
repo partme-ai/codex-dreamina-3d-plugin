@@ -104,8 +104,37 @@ class AutomaticWorkflowTests(unittest.TestCase):
         ))
         return ledger
 
+    def _exact_request_ledger(self):
+        ledger = JobLedger(self.ledger_path)
+        ledger.write(new_job(
+            "job-auto-001",
+            execution_policy=ExecutionPolicy.auto_exact_request(
+                permit_one_submission=True,
+                permit_reference_upload=True,
+            ),
+        ))
+        return ledger
+
+    def test_explicit_exact_request_can_proceed_when_provider_has_no_quote_api(self):
+        ledger = self._exact_request_ledger()
+        client = FakeDesignClient({
+            "status": [{"ready": True}],
+            "account": [{"ready": True}],
+            "quote": [{"quote_available": False}],
+            "submit": [{"submit_id": "sub-exact"}],
+            "query": [{"status": "succeeded", "artifact": self.result_artifact}],
+        })
+        result = auto_orchestrator.run_until_blocked(
+            ledger, client, preview_receipt=_preview(self.preview_path), request=_request()
+        )
+        self.assertEqual(result.state, JobState.COMPLETED)
+        self.assertEqual([name for name, _ in client.calls].count("submit"), 1)
+
     def test_within_budget_submits_once_and_completes(self):
         ledger = self._ledger()
+        request = _request()
+        request["download_dir"] = str(self.root / "downloads")
+        request["approved_roots"] = [str(self.root)]
         client = FakeDesignClient({
             "status": [{"ready": True}],
             "account": [{"ready": True}],
@@ -113,11 +142,14 @@ class AutomaticWorkflowTests(unittest.TestCase):
             "submit": [{"submit_id": "sub-001"}],
             "query": [{"status": "succeeded", "artifact": self.result_artifact}],
         })
-        result = auto_orchestrator.run_until_blocked(ledger, client, preview_receipt=_preview(self.preview_path), request=_request())
+        result = auto_orchestrator.run_until_blocked(ledger, client, preview_receipt=_preview(self.preview_path), request=request)
         self.assertEqual(result.state, JobState.COMPLETED)
         self.assertEqual([name for name, _ in client.calls].count("submit"), 1)
         self.assertEqual(ledger.read()["submit"]["design_submit_id"], "sub-001")
         self.assertEqual(ledger.read()["result"]["sha256"], self.result_artifact["sha256"])
+        query_arguments = next(arguments for name, arguments in client.calls if name == "query")
+        self.assertEqual(query_arguments["download_dir"], str(self.root / "downloads"))
+        self.assertEqual(query_arguments["approved_roots"], [str(self.root)])
 
     def test_numeric_budget_without_authoritative_quote_stops_before_submit(self):
         ledger = self._ledger()

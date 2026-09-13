@@ -28,6 +28,7 @@ sys.path.insert(0, str(ROOT / "scripts"))
 from job_ledger import (  # noqa: E402
     ALLOWED_TRANSITIONS,
     BudgetExceededError,
+    ExecutionMode,
     ExecutionPolicy,
     InvalidTransitionError,
     JobLedger,
@@ -164,6 +165,15 @@ class TransitionTests(unittest.TestCase):
 
 
 class ExecutionPolicyTests(unittest.TestCase):
+    def test_exact_request_policy_has_no_synthetic_budget(self) -> None:
+        policy = ExecutionPolicy.auto_exact_request(
+            permit_one_submission=True,
+            permit_reference_upload=True,
+        )
+        self.assertEqual(policy.mode, ExecutionMode.AUTO_EXACT_REQUEST)
+        self.assertIsNone(policy.max_charge)
+        self.assertTrue(policy.permit_unquoted_exact_request)
+
     def test_policy_cannot_change_after_quote(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             ledger = JobLedger(Path(tmp) / "job.json")

@@ -138,6 +138,20 @@ class ResumeSkillTests(unittest.TestCase):
 
 
 class AutomaticPolicySkillTests(unittest.TestCase):
+    def test_production_seedance_skills_route_through_typed_mcp_client(self) -> None:
+        for skill_name in (
+            "codex-dreamina-3d-auto-seedance",
+            "codex-dreamina-3d-from-blender",
+            "codex-dreamina-3d-resume",
+        ):
+            _, body = _load_skill(skill_name)
+            self.assertIn("McpDesignClient", body, skill_name)
+            self.assertNotIn("design_handoff(mode=", body, skill_name)
+
+    def test_legacy_design_handoff_is_declared_fixture_only(self) -> None:
+        _, body = _load_skill("codex-dreamina-3d-from-blender")
+        self.assertIn("fixture-only", body)
+
     def test_blender_skill_describes_one_time_automatic_envelope(self) -> None:
         _, body = _load_skill("codex-dreamina-3d-from-blender")
         self.assertIn("auto_with_budget", body)

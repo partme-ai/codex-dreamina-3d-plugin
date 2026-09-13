@@ -228,23 +228,23 @@ class McpDesignClient:
     def query_task(self, submit_id: str, download_dir: str | None = None) -> dict[str, object]: ...
 ```
 
-- [ ] **Step 1: Write failing exact-tool tests**
+- [x] **Step 1: Write failing exact-tool tests**
 
 Assert calls use only `dreamina_cli_status`, `dreamina_account`, `dreamina_submit_video`, and `dreamina_query_task`; reject unknown fields and malformed MCP error envelopes. Assert the preview file path/digest is passed as one validated `reference` and never as a `.blend` path. Treat the absence of an authoritative quote field as `quote_available=False`; do not synthesize cost from historical tasks.
 
-- [ ] **Step 2: Run RED tests**
+- [x] **Step 2: Run RED tests**
 
 Run: `/usr/local/bin/python3 -m unittest tests.test_mcp_design_client -v`
 
-- [ ] **Step 3: Implement the typed MCP port**
+- [x] **Step 3: Implement the typed MCP port**
 
 Do not spawn or import the Design plugin. The runtime supplies a Codex MCP `ToolInvoker`; tests inject a fake. Normalize MCP `structuredContent`, error, approval-denied, user-action-required, submit-ID, task-state, and downloaded-artifact fields into the `DesignClient` contract.
 
-- [ ] **Step 4: Remove split-brain routing**
+- [x] **Step 4: Remove split-brain routing**
 
 Update every production Skill to use the automatic orchestrator plus Dreamina Design MCP. Mark the six-mode executable `design_handoff` as fixture/legacy compatibility only. No Skill may route real users to the fake executable contract.
 
-- [ ] **Step 5: Run Skill/TRACE and orchestrator tests**
+- [x] **Step 5: Run Skill/TRACE and orchestrator tests**
 
 Run:
 

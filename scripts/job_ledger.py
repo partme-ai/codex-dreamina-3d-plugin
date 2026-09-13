@@ -85,6 +85,7 @@ class ExecutionMode(str, Enum):
 
     INTERACTIVE = "interactive"
     AUTO_WITH_BUDGET = "auto_with_budget"
+    AUTO_EXACT_REQUEST = "auto_exact_request"
     REVIEW_ONLY = "review_only"
 
 
@@ -120,6 +121,24 @@ class ExecutionPolicy:
             permit_one_submission=True,
             permit_reference_upload=bool(permit_reference_upload),
             permit_unquoted_exact_request=bool(permit_unquoted_exact_request),
+        )
+
+    @classmethod
+    def auto_exact_request(
+        cls,
+        *,
+        permit_one_submission: bool,
+        permit_reference_upload: bool,
+    ) -> "ExecutionPolicy":
+        """Authorize one exact request when the provider has no quote API."""
+        if not permit_one_submission:
+            raise ValueError("auto_exact_request requires permit_one_submission")
+        return cls(
+            ExecutionMode.AUTO_EXACT_REQUEST,
+            max_charge=None,
+            permit_one_submission=True,
+            permit_reference_upload=bool(permit_reference_upload),
+            permit_unquoted_exact_request=True,
         )
 
     def to_dict(self) -> dict[str, Any]:

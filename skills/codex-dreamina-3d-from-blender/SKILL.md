@@ -33,6 +33,11 @@ prerequisite is pending, validation fails, or recovery would require another
 paid submission. `interactive` retains the review at each gate; `review_only`
 does not upload or submit.
 
+Because Dreamina Design currently exposes no authoritative quote tool,
+`auto_with_budget` stops at `QUOTE_UNAVAILABLE`. The user may instead approve
+one fully specified `auto_exact_request`; that grants one submission only and
+does not bypass the native paid-action approval in Dreamina Design.
+
 1. **Inspect.** Call `inspect_scene(executable=codex-blender_adapter,
    scene=<user_scene>)`. Reject if the scene cannot be inspected.
 2. **Specify preview.** Collect user-approved camera, frame range, output
@@ -44,16 +49,19 @@ does not upload or submit.
 4. **Validate.** Run `validate_artifact(receipt, current_file)` from
    `scripts/handoff_validator.py`. On any error, transition the job to
    `Failed` with the classified `error_category`.
-5. **Resolve capability.** Call `design_handoff(mode='capabilities', ...)`.
-   On web prereq → stop and ask the user to log in.
-6. **Quote.** Build `QuoteInputs(prompt, model, resolution, ratio, duration)`.
-   Submit via `design_handoff(mode='quote', ...)`; cross-check echoed fields.
-7. **Approve.** Require explicit user authorization before
-   `design_handoff(mode='approve', ...)`. Persist the approval id.
-8. **Submit.** `design_handoff(mode='submit', ...)`. Persist
-   `submit.design_submit_id` BEFORE reporting success.
-9. **Query.** Loop `design_handoff(mode='query', ...)` with backoff. On
-   `UnknownStateError` only query — never resubmit.
+5. **Resolve readiness.** Use `McpDesignClient` to call
+   `dreamina_cli_status` and `dreamina_account`. On user action required, stop
+   with the returned remediation.
+6. **Bind request.** Build `QuoteInputs(prompt, model, resolution, ratio,
+   duration)` and the validated preview reference. Record that an authoritative
+   quote is unavailable; never synthesize one.
+7. **Authorize.** Require `auto_exact_request` (or a future authoritative
+   quote within `auto_with_budget`) plus reference-upload and one-submit flags.
+8. **Submit.** Let `McpDesignClient` call `dreamina_submit_video`; Dreamina
+   Design obtains native approval internally. Persist `submit_id` before
+   reporting `Submitted`.
+9. **Query.** Let `McpDesignClient` call `dreamina_query_task` for the stored
+   identifier and approved download root. `Unknown` is query-only.
 10. **Download + verify.** Re-hash the downloaded artifact and compare to
     the declared hash; reject on mismatch.
 
@@ -70,3 +78,5 @@ Querying → Completed | Failed | Unknown` exactly once each.
 - Never send DCC scene data to the design plugin — only the validated
   artifact reference (artifact_id + sha256), the user prompt, and the
   quote inputs.
+- Never use `scripts/design_handoff.py` for a production route. It is a
+  fixture-only compatibility harness for deterministic tests.

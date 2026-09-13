@@ -74,7 +74,7 @@
       "required": ["mode", "max_charge", "permit_one_submission", "permit_reference_upload", "permit_unquoted_exact_request"],
       "additionalProperties": false,
       "properties": {
-        "mode": {"type": "string", "enum": ["interactive", "auto_with_budget", "review_only"]},
+        "mode": {"type": "string", "enum": ["interactive", "auto_with_budget", "auto_exact_request", "review_only"]},
         "max_charge": {"type": ["string", "null"], "pattern": "^[0-9]+(?:\\.[0-9]+)?$"},
         "permit_one_submission": {"type": "boolean"},
         "permit_reference_upload": {"type": "boolean"},

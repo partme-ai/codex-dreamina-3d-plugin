@@ -15,6 +15,10 @@ The user references an existing job id and wants to continue without
 restarting local export or remote submission. The job ledger is the
 single source of truth for what has already happened.
 
+Use `McpDesignClient` for all Dreamina Design operations. Resume may call only
+the typed status, account, submit, and query mappings; after a stored
+`design_submit_id` exists it may call only the query mapping.
+
 ## Workflow
 
 For a persisted `auto_with_budget` job, automatically resume only the safe
