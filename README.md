@@ -8,7 +8,7 @@
 
 ## Status and purpose
 
-`codex-dreamina-3d` is a receipt-driven composition plugin rather than a DCC implementation. Its Blender/Maya companion discovery, preview validation, resumable job ledger, Dreamina Design handoff, fixture end-to-end workflows, distribution checks, and Agent Skills are implemented and validated offline. Real Blender, Maya, and paid Seedance runtime acceptance remain separate, explicitly authorized gates.
+`codex-dreamina-3d` is a receipt-driven composition plugin rather than a DCC implementation. Its Blender/Maya companion discovery, preview validation, resumable job ledger, Dreamina Design handoff, fixture end-to-end workflows, distribution checks, and Agent Skills are implemented and validated offline. The real Blender 5.2.1 preview and receipt handoff pass; Maya and paid Seedance runtime acceptance remain separate, explicitly authorized gates.
 
 ## License
 
@@ -39,4 +39,4 @@ Blender/Maya scene
 
 ## Clean-room evidence
 
-The official Blender 1.0.0 package was downloaded for behavior study only. Observed boundaries include camera render/local video modes, temporary setting restoration, H.264 MP4, protocol-driven limits, and a local web bridge. This project will implement an independent CLI-based handoff rather than copy that source or bridge.
+The official Blender 1.0.0 package was downloaded for behavior study only. Observed boundaries include camera render/local video modes, temporary setting restoration, H.264 MP4, protocol-driven limits, and a local web bridge. This orchestrator uses the independent `codex-blender` CLI receipt contract rather than copying that source or bridge.

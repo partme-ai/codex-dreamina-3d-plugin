@@ -7,14 +7,14 @@ Dreamina (Seedance 2.5) half of the Dreamina 3D pipeline.
 
 | Gate                                            | Status            | Reason                                                            |
 |-------------------------------------------------|-------------------|--------------------------------------------------------------------|
-| `paid_seedance_canary`                          | `NOT_RUN`         | Action-time approval not granted; authentication was not exercised |
+| `paid_seedance_canary`                          | `PASS`            | Authorized Seedance 2.5 480p/4s canary reached success and downloaded |
 | `codex_dreamina_design_receipt_roundtrip`       | `PASS` (fixture)  | Fake Design adapter exercises capabilities/quote/approve/submit/query/download |
 
-## Why `paid_seedance_canary` was not exercised here
+## Paid canary evidence
 
-The plan explicitly requires a separate action-time approval for any
-paid Seedance generation. That approval was not granted in this
-environment. Authentication and credit state were deliberately not exercised.
+The user explicitly authorized Blender and Seedance path validation. Exactly
+one paid generation was submitted; every later operation queried the same
+server-issued submit ID and never resubmitted.
 
 Probe performed on this environment (2026-09-13):
 
@@ -25,18 +25,25 @@ $ dreamina --help
 Usage: dreamina [flags]
 ```
 
-The Dreamina CLI and `codex-dreamina-design` plugin are installed. That does
-not prove authentication, account entitlement, quote approval, or a successful
-Seedance generation, so the gate remains `NOT_RUN`.
+Observed result:
 
-To run the canary in a future authorized environment:
+```text
+submit_id=9f703ef1-3cf2-452a-bfde-4c96433e4434
+mode=multimodal2video
+model=seedance2.5
+video_resolution=480p
+duration=4
+terminal_status=success
+commerce_info.credit_count=54
+output=854x480, H.264/AAC MP4, 24 fps, 4.063991 s, 762550 bytes
+sha256=950e9a25bd773c04aace0bd0ca5e2b72a255f7abf69286c8677637b6b4f79a75
+```
 
-1. Confirm the installed `codex-dreamina-design` adapter contract and complete
-   the web login that it requires (see
-   `WebPrerequisiteError`).
-2. Explicitly approve the canary run before invoking the orchestrator;
-   the design handoff refuses to call `submit` without that approval.
-3. Use a low-cost Seedance 2.5 model and minimal duration.
+The account balance changed concurrently with another 192-credit task, so the
+balance delta is not used as this canary's cost proof. The task-specific
+`commerce_info.credit_count=54` is the attributable charge. The downloaded
+artifact was independently checked with ffprobe and SHA-256; CLI success alone
+was not treated as artifact acceptance.
 
 ## What was exercised offline
 

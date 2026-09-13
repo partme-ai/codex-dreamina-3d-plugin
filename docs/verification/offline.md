@@ -72,9 +72,9 @@ $ git diff --check
 The completion gate's runtime items are recorded separately and explicitly
 marked as not run in this offline environment:
 
-- `local_blender_runtime` — see [./blender-path.md](./blender-path.md) (`NOT_RUN`)
+- `local_blender_runtime` — see [./blender-path.md](./blender-path.md) (`PASS`)
 - `local_maya_runtime` — see [./maya-path.md](./maya-path.md) (`NOT_RUN`)
-- `paid_seedance_canary` — see [./dreamina-path.md](./dreamina-path.md) (`NOT_RUN`)
+- `paid_seedance_canary` — see [./dreamina-path.md](./dreamina-path.md) (`PASS`)
 
 These gates require explicit runtime authorization and external software /
 credentials and must be exercised in a controlled environment before a

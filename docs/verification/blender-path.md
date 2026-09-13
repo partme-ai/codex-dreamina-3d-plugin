@@ -7,7 +7,7 @@ Blender half of the Dreamina 3D pipeline.
 
 | Gate                                            | Status            | Reason                                                            |
 |-------------------------------------------------|-------------------|--------------------------------------------------------------------|
-| `local_blender_runtime`                         | `NOT_RUN`         | Blender is present, but no callable companion adapter or runtime authorization is available |
+| `local_blender_runtime`                         | `PASS`            | Blender 5.2.1 preview-only MP4 and shared receipt validated |
 | `codex_blender_receipt_recorded`                | `PASS` (fixture)  | Validated via the fake Blender adapter (`tests/fakes/fake_blender_adapter.py`) |
 | `blender_to_design_receipt_chain`               | `PASS` (fixture)  | Fake Design adapter accepted the preview receipt without a network call |
 
@@ -28,7 +28,7 @@ A successful run produces a receipt whose `producer_plugin` is
 the independently re-hashed on-disk file. The orchestrator's
 `scripts/handoff_validator.py` accepts that receipt.
 
-## Why `local_blender_runtime` was not exercised here
+## Real runtime evidence
 
 The plan separates offline evidence (Tasks 1–7) from runtime evidence
 (Task 8). Exercising a real Blender path requires:
@@ -43,16 +43,16 @@ Probe performed on this environment (2026-09-13):
 $ /Applications/Blender.app/Contents/MacOS/Blender --version
 Blender 5.2.1 LTS
 
-$ python3 -c '... discover_companions((Path(".."),)) ...'
-# no candidates: codex-blender-plugin does not ship bin/blender_adapter
+$ python3 -c '... discover_companions((installed_plugins_root,)) ...'
+codex-blender 0.1.0 bin/blender_adapter ('1.0.0',)
 ```
 
-Blender and the `codex-blender` plugin are present, but the orchestrator's
-documented capability probe cannot resolve a callable adapter executable.
-Explicit runtime authorization was likewise not granted, so the gate remains
-`NOT_RUN` rather than inferred. To run it, publish the `bin/blender_adapter`
-contract from the companion plugin, obtain runtime authorization, and invoke
-it with the same argv/JSON contract shown above.
+The `codex-blender` source now publishes `bin/blender_adapter` with receipt
+contract `1.0.0`. An authorized Blender 5.2.1 run produced a 320×180, 24 fps,
+2-second H.264 MP4 with SHA-256
+`2a38c024311534e8ddcced9927a9c4fe64a5c05cba91cd5e7879712ebced8e6e` and
+`restoration.status=confirmed`. This orchestrator copied and independently
+re-hashed the artifact to the same digest.
 
 ## Determinism guarantees preserved
 

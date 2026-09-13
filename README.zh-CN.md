@@ -8,7 +8,7 @@
 
 ## 状态与定位
 
-`codex-dreamina-3d` 是回执驱动的组合插件，而不是 DCC 实现。Blender/Maya 伴随能力发现、预览验证、可恢复作业台账、Dreamina Design 交接、夹具端到端工作流、分发检查和 Agent Skills 均已实现并通过离线验证。真实 Blender、Maya 与付费 Seedance 运行时验收仍是需要单独明确授权的门禁。
+`codex-dreamina-3d` 是回执驱动的组合插件，而不是 DCC 实现。Blender/Maya 伴随能力发现、预览验证、可恢复作业台账、Dreamina Design 交接、夹具端到端工作流、分发检查和 Agent Skills 均已实现并通过离线验证。真实 Blender 5.2.1 预览与回执交接已通过；Maya 与付费 Seedance 运行时验收仍是需要单独明确授权的门禁。
 
 ## 许可证
 
@@ -39,4 +39,4 @@ Blender/Maya 场景
 
 ## Clean-room 证据
 
-官方 Blender 1.0.0 包仅用于行为研究。观察到相机渲染/本地视频、临时设置恢复、H.264 MP4、协议限制和本地 Web Bridge。本项目会独立实现 CLI 交接，不复制源码或 Bridge。
+官方 Blender 1.0.0 包仅用于行为研究。观察到相机渲染/本地视频、临时设置恢复、H.264 MP4、协议限制和本地 Web Bridge。本编排器使用独立的 `codex-blender` CLI 回执契约，不复制该源码或 Bridge。

@@ -167,7 +167,7 @@ class JobState(str, Enum):
 - [x] Validate `codex-maya` fixture path without Dreamina and record its receipt.
 - [x] Validate both receipts through this plugin using fake `codex-dreamina-design`; no network or credits.
 - [ ] With explicit runtime authorization, run one local Blender and one local Maya path; keep unsupported environments blocked rather than inferred.
-- [ ] With separate action-time approval, run at most one low-cost Seedance canary; otherwise record `paidCanary=NOT_RUN`.
+- [x] With separate action-time approval, run at most one low-cost Seedance canary; otherwise record `paidCanary=NOT_RUN`.
 - [x] Prove end-to-end completion requires a validated final artifact, not HTTP/CLI success alone.
 - [x] Commit fixture/runtime-blocker evidence separately from offline evidence and stop for integration choice.
 
