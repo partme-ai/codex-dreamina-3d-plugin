@@ -57,7 +57,9 @@ ALLOWED_TRANSITIONS: dict[JobState, frozenset[JobState]] = {
     JobState.QUOTED: frozenset({JobState.APPROVED, JobState.PREVIEW_VALIDATED, JobState.FAILED}),
     JobState.APPROVED: frozenset({JobState.SUBMITTED, JobState.PREVIEW_VALIDATED, JobState.FAILED}),
     JobState.SUBMITTED: frozenset({JobState.QUERYING, JobState.UNKNOWN, JobState.FAILED}),
-    JobState.QUERYING: frozenset({JobState.COMPLETED, JobState.UNKNOWN, JobState.FAILED, JobState.SUBMITTED}),
+    # Query-only: once submitted, the job may never return to Submitted, so a
+    # restarted orchestrator cannot re-submit a paid action.
+    JobState.QUERYING: frozenset({JobState.COMPLETED, JobState.UNKNOWN, JobState.FAILED}),
     JobState.COMPLETED: frozenset(),
     JobState.FAILED: frozenset(),
     JobState.UNKNOWN: frozenset({JobState.QUERYING, JobState.FAILED}),
@@ -98,6 +100,7 @@ class ExecutionPolicy:
     permit_one_submission: bool = False
     permit_reference_upload: bool = False
     permit_unquoted_exact_request: bool = False
+    download_root: str | None = None
 
     @classmethod
     def auto_with_budget(
@@ -149,6 +152,7 @@ class ExecutionPolicy:
             "permit_one_submission": self.permit_one_submission,
             "permit_reference_upload": self.permit_reference_upload,
             "permit_unquoted_exact_request": self.permit_unquoted_exact_request,
+            "download_root": self.download_root,
         }
 
 

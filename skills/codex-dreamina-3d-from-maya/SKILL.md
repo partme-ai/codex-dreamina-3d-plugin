@@ -5,7 +5,7 @@ metadata:
   type: workflow
   plugin: codex-dreamina-3d
   source_dcc: codex-maya
-  status: stable
+  status: experimental
 ---
 
 # codex-dreamina-3d-from-maya

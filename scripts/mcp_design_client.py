@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Mapping
+from pathlib import Path
 from typing import Any, Protocol
 
 
@@ -51,8 +52,18 @@ def _remote_status(payload: Mapping[str, Any]) -> str:
 
 def _artifact(payload: Mapping[str, Any]) -> dict[str, Any] | None:
     artifacts = payload.get("artifacts")
-    if not isinstance(artifacts, list) or len(artifacts) != 1:
+    if artifacts is None:
         return None
+    if not isinstance(artifacts, list):
+        raise McpToolError("Dreamina Design returned a non-list `artifacts` field")
+    if not artifacts:
+        return None
+    if len(artifacts) != 1:
+        # Surface the server-side surprise instead of silently dropping every
+        # artifact and reporting a generic "no artifact" error downstream.
+        raise McpToolError(
+            f"Dreamina Design returned {len(artifacts)} artifacts; exactly one is expected"
+        )
     item = artifacts[0]
     if not isinstance(item, Mapping):
         return None
@@ -67,6 +78,23 @@ def _artifact(payload: Mapping[str, Any]) -> dict[str, Any] | None:
     if size is not None:
         result["bytes"] = int(size)
     return result
+
+
+def _require_within_roots(path: str, roots: object, label: str) -> None:
+    """Reject a path that resolves outside every approved root.
+
+    Containment is checked on resolved paths so a symlinked intermediate
+    directory cannot be used to escape an approved root, and a root that is
+    itself reached through a link (``/tmp`` on macOS) still matches.
+    """
+    if not roots:
+        return
+    if not isinstance(roots, (list, tuple)) or not all(isinstance(r, str) for r in roots):
+        raise ValueError(f"{label} approved_roots must be a list of strings")
+    allowed = [Path(root).expanduser().resolve() for root in roots]
+    candidate = Path(path).expanduser().resolve()
+    if not any(candidate == root or root in candidate.parents for root in allowed):
+        raise ValueError(f"{label} path {candidate} is outside the approved roots {allowed}")
 
 
 class McpDesignClient:
@@ -99,6 +127,9 @@ class McpDesignClient:
         preview_path = str(preview.get("path", ""))
         if preview_path.lower().endswith(".blend"):
             raise ValueError("Blender scene files must never be uploaded to Dreamina")
+        approved_roots = request.get("approved_roots", [])
+        if approved_roots:
+            _require_within_roots(preview_path, approved_roots, "preview")
         arguments: dict[str, object] = {
             "mode": "multimodal2video",
             "prompt": request["prompt"],
@@ -107,7 +138,7 @@ class McpDesignClient:
             "ratio": request["ratio"],
             "duration_seconds": int(request["duration_seconds"]),
             "references": [{"path": preview_path, "role": "reference", "sha256": preview["sha256"]}],
-            "approved_roots": list(request.get("approved_roots", [])),
+            "approved_roots": list(approved_roots),
         }
         if "web_prerequisite_acknowledged" in request:
             arguments["web_prerequisite_acknowledged"] = bool(request["web_prerequisite_acknowledged"])

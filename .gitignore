@@ -8,4 +8,10 @@ dist/
 *.egg-info/
 .env
 .env.*
+.ci-venv/
+# Locally generated adapter shims. Tests build these under a temp directory;
+# a committed copy would embed an absolute private path and a hardcoded
+# interpreter, so keep them out of the repository.
+tests/fakes/.*.sh
+tests/fakes/*.sh
 

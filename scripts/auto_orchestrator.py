@@ -177,8 +177,13 @@ def run_until_blocked(
             ledger.transition(JobState.FAILED, error_category="design_error")
             return _result(ledger, actions, "REMOTE_FAILED")
         if remote_status in {"success", "succeeded"}:
+            policy = ledger.read().get("execution_policy") or {}
+            download_root = policy.get("download_root")
+            approved_roots = [str(download_root)] if download_root else None
             try:
-                artifact = verify_result_artifact(query.get("artifact"))
+                artifact = verify_result_artifact(
+                    query.get("artifact"), approved_roots=approved_roots
+                )
             except ArtifactMismatchError:
                 ledger.transition(JobState.FAILED, error_category="hash_mismatch")
                 return _result(ledger, actions, "FINAL_ARTIFACT_INVALID")

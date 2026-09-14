@@ -68,12 +68,25 @@ def _flatten(suite):
             yield item
 
 
+# Floor for the strict gate. If a refactor ever filters or renames tests such
+# that the selected suite shrinks, an empty or near-empty suite would otherwise
+# report success. Keep this in step with the real suite size.
+MINIMUM_REQUIRED_TESTS = 150
+
+
 def run_required_tests() -> unittest.TestResult:
     discovered = unittest.defaultTestLoader.discover(str(ROOT / "tests"))
     required = unittest.TestSuite(
         test for test in _flatten(discovered)
         if ".CodexCliTests." not in test.id()
     )
+    selected = required.countTestCases()
+    if selected < MINIMUM_REQUIRED_TESTS:
+        raise StrictGateError(
+            f"strict gate selected only {selected} tests, below the required "
+            f"floor of {MINIMUM_REQUIRED_TESTS}; the discovery filter may be "
+            "excluding the suite"
+        )
     result = unittest.TextTestRunner(verbosity=1).run(required)
     assert_test_result(result)
     return result

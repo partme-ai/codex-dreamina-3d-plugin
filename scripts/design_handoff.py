@@ -20,6 +20,7 @@ import json
 import os
 import subprocess
 import tempfile
+from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -55,8 +56,18 @@ class ArtifactMismatchError(DesignHandoffError):
     pass
 
 
-def verify_result_artifact(artifact: dict) -> dict:
-    """Require and independently verify a downloaded result artifact."""
+def verify_result_artifact(artifact: dict, *, approved_roots: Sequence[str] | None = None) -> dict:
+    """Require and independently verify a downloaded result artifact.
+
+    The path is resolved before any check and, when ``approved_roots`` is
+    supplied, the resolved path must sit inside one of them. Resolving first is
+    what makes the check meaningful: ``is_symlink()`` only inspects the final
+    component, so a symlinked *intermediate* directory would otherwise let the
+    artifact escape the approved download root. Containment is evaluated on
+    resolved paths on both sides, which keeps this correct on hosts where the
+    temp directory itself is reached through a link (for example ``/tmp`` ->
+    ``/private/tmp`` on macOS).
+    """
     if not isinstance(artifact, dict):
         raise ArtifactMismatchError("succeeded result has no artifact object")
     raw_path = artifact.get("path")
@@ -67,9 +78,18 @@ def verify_result_artifact(artifact: dict) -> dict:
         char not in "0123456789abcdef" for char in declared_hash
     ):
         raise ArtifactMismatchError("succeeded result artifact is missing a lowercase sha256")
-    path = Path(raw_path)
-    if path.is_symlink() or not path.is_file():
-        raise ArtifactMismatchError(f"result artifact is not a regular non-symlink file: {path}")
+
+    path = Path(raw_path).resolve()
+    if not path.is_file():
+        raise ArtifactMismatchError(f"result artifact is not a regular file: {path}")
+
+    if approved_roots:
+        allowed = [Path(root).expanduser().resolve() for root in approved_roots]
+        if not any(path == root or root in path.parents for root in allowed):
+            raise ArtifactMismatchError(
+                f"result artifact {path} is outside the approved download roots {allowed}"
+            )
+
     size = path.stat().st_size
     if size <= 0:
         raise ArtifactMismatchError(f"result artifact is empty: {path}")
