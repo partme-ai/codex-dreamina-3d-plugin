@@ -21,6 +21,11 @@ Web or use the official uploader.
 - Foreground Blender Connector and an enabled official uploader.
 - An approved camera/range/output or an existing local video.
 
+**If the official add-on is absent, report `jimeng_web=OPTIONAL_UNAVAILABLE` and
+stop.** State it as optional and unavailable — never as verified, and never as a
+production claim. Probe for the add-on read-only; do not install or enable it to
+make this route available.
+
 ### ❌ 超出范围
 
 - Do not install or enable the official add-on.

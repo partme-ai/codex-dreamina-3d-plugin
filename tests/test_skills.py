@@ -164,6 +164,46 @@ class AutomaticPolicySkillTests(unittest.TestCase):
         self.assertIn("experimental", body.lower())
         self.assertIn("NOT_RUN", body)
 
+    def test_maya_skill_frontmatter_is_not_stable(self) -> None:
+        """A frontmatter-only consumer must not read Maya as production-ready."""
+        fm, _ = _load_skill("codex-dreamina-3d-from-maya")
+        self.assertEqual(fm.get("status"), "experimental")
+
+
+class HonestAvailabilityTests(unittest.TestCase):
+    """The router and the web entry must report optional capability honestly
+    rather than implying production support (release plan Task 5 Step 4)."""
+
+    def test_router_reports_optional_unavailable(self) -> None:
+        _, body = _load_skill("codex-dreamina-3d-use")
+        self.assertIn("OPTIONAL_UNAVAILABLE", body)
+
+    def test_web_skill_reports_optional_unavailable(self) -> None:
+        _, body = _load_skill("codex-dreamina-3d-jimeng-web")
+        self.assertIn("OPTIONAL_UNAVAILABLE", body)
+
+    def test_router_never_treats_link_ready_as_completed(self) -> None:
+        _, body = _load_skill("codex-dreamina-3d-use")
+        lowered = body.lower()
+        self.assertIn("jimenglinkready", lowered)
+        self.assertTrue(
+            "never treat `jimenglinkready` as `completed`" in lowered
+            or "is not a submitted or completed" in lowered,
+            "router must state that a ready link is not Seedance completion",
+        )
+
+    def test_router_flags_maya_as_experimental(self) -> None:
+        _, body = _load_skill("codex-dreamina-3d-use")
+        lowered = body.lower()
+        self.assertIn("maya", lowered)
+        self.assertIn("experimental", lowered)
+        self.assertIn("not_run", lowered)
+
+    def test_web_skill_forbids_enabling_the_addon(self) -> None:
+        _, body = _load_skill("codex-dreamina-3d-jimeng-web")
+        lowered = body.lower()
+        self.assertIn("do not install or enable", lowered)
+
 
 if __name__ == "__main__":
     unittest.main()

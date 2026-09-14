@@ -29,6 +29,20 @@ If the user's intent does not distinguish these outcomes, explain them and ask
 for one choice. Never silently upgrade a local preview into a web or paid
 operation.
 
+## Report availability honestly
+
+State each entry's availability before the user chooses. Do not imply a
+capability is production-ready when it is not:
+
+- `preview_only` and `auto_seedance` are production routes on macOS + Blender.
+- `jimeng_web` is `OPTIONAL_UNAVAILABLE` whenever the user-installed official
+  uploader is absent. Report it as optional and unavailable, never as verified.
+  Probe for it; never install or enable it to make the route available.
+- `codex-dreamina-3d-from-maya` is **experimental** with runtime status
+  `NOT_RUN`. It is fixture-compatible only and is not part of the production
+  release. Do not present Maya as production-ready, and do not route a user
+  there without saying so.
+
 ## Workflow
 
 1. **Discover companions.** Call `discover_companions(search_roots)` from
@@ -36,9 +50,11 @@ operation.
    install anything.
 2. **Choose the companion.** Call `select_companion(candidates, requested=None)`.
    - zero companions: surface `install_guidance()` and stop.
-   - one companion: route to `codex-dreamina-3d-from-{blender|maya}`.
+   - one companion: route to `codex-dreamina-3d-from-blender`, or to
+     `codex-dreamina-3d-from-maya` only after flagging it experimental.
    - two companions: ask the user to pick.
-3. **Select entry.** Apply the explicit route above.
+3. **Select entry.** Report availability per the section above, then apply the
+   explicit route.
 4. **Delegate** to the selected bounded Skill and stop.
 
 ## Never do
@@ -46,6 +62,10 @@ operation.
 - Never install or modify a companion plugin.
 - Never skip the companion detection step.
 - Never proceed to Dreamina submission before the preview is validated.
+- Never report `jimeng_web` as production-verified while the official add-on is
+  absent.
+- Never treat `JimengLinkReady` as `Completed`.
+- Never present the Maya route as part of the production release.
 
 ## Gate signals
 
@@ -53,3 +73,5 @@ operation.
 - Dreamina submission status: `Submitted | Querying | Unknown` in the ledger.
 - Final artifact acceptance: `Completed` (only after `result.sha256` is on
   disk and matches the declared hash).
+- Web handoff status: `JimengLinkReady`, or `OPTIONAL_UNAVAILABLE` when the
+  official add-on is absent. Neither is Seedance completion.
