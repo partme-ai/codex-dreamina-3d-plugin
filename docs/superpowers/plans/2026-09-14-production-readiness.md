@@ -415,17 +415,23 @@ Commit: `test: record Dreamina 3D production runtime acceptance`
 **Interfaces:**
 - Produces: released version `0.3.0` with remote and installed-artifact proof.
 
-- [ ] **Step 1: Run independent two-lane review**
+- [x] **Step 1: Run independent two-lane review**
 
 Obtain a code/security reviewer recommendation and an architecture status over the exact release diff. Any missing lane, `REQUEST CHANGES`, or architecture `BLOCK` stops the release.
 
-- [ ] **Step 2: Run final local gates**
+Round 1 returned `REQUEST_CHANGES` + `BLOCK`. Findings were fixed in `a3bae9d` and `c2d74c2`, affected tests rerun, and both lanes restarted over the new HEAD. Final verdicts `APPROVE` + `CLEAR` are recorded in [`production-review-2026-09-14.md`](../../verification/production-review-2026-09-14.md).
+
+- [x] **Step 2: Run final local gates**
 
 Run strict CI gate, full tests, distribution validators, secret scan, link audit, `git diff --check`, and re-read the production specification/plan line by line.
 
-- [ ] **Step 3: Bump and validate version**
+`scripts/ci_gate.py --strict`: 188 tests, 0 required skips, TRACE 6/6, version 0.3.0, install parity true. Distribution validator and OpenAI's `validate_plugin.py` both pass. Secret scan empty, 30 links checked / 0 broken, `git diff --check` clean.
+
+- [x] **Step 3: Bump and validate version**
 
 Set Dreamina 3D to `0.3.0`. Update exact version tests and validators. Do not use a build-metadata cachebuster as the public release version.
+
+Manifest is `0.3.0` (set in `bbb3862`) and consistent across `validate_distribution.py`, `test_distribution.py`, `test_ci_gate.py` and `ci_gate.py`. No cachebuster suffix is used as the public release version.
 
 - [ ] **Step 4: Commit and push without rewriting history**
 
