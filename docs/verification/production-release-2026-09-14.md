@@ -14,8 +14,29 @@ loopback tokens, or local private paths.
 | Version | `0.3.0` |
 | Skill inventory | 6 (`use`, `from-blender`, `from-maya`, `jimeng-web`, `auto-seedance`, `resume`) |
 | Release scope | macOS + Blender 5.2.1 LTS |
-| Final release SHA | `b5167b29dddc1d02e9b629cab6a3079553b6d522` |
-| GitHub Actions run | [`34829927327`](https://github.com/partme-ai/codex-dreamina-3d-plugin/actions/runs/34829927327) — `conclusion=success` |
+| Release content SHA | `b5167b29dddc1d02e9b629cab6a3079553b6d522` — last commit touching shipped files |
+| CI on that content | [`34829927327`](https://github.com/partme-ai/codex-dreamina-3d-plugin/actions/runs/34829927327) — `conclusion=success` |
+| Terminal head SHA | `78df10ee29d5c8a36e9b7723eb5702c2d56e17cb` |
+| CI on terminal head | [`34830099503`](https://github.com/partme-ai/codex-dreamina-3d-plugin/actions/runs/34830099503) — `conclusion=success` |
+
+### How the release SHA is defined
+
+Committing this evidence document changes HEAD, which would otherwise require
+re-verifying CI and Marketplace parity against a SHA that the document itself
+cannot name in advance. The release is therefore defined by **content**, not by
+the tip:
+
+- **Release content SHA** is the last commit that changes a shipped file
+  (`skills/`, `scripts/`, `schemas/`, `.codex-plugin/`, `.agents/`). Commit
+  `b5167b2` is that commit.
+- Every commit after it is **documentation-only** and is confirmed to ship
+  identical content by the Marketplace parity comparison (23 files, zero drift)
+  and by the strict gate's install parity.
+- Each of those commits still runs the full gate in CI, so no documentation
+  commit ships unverified.
+
+Both SHAs above are green, and the Marketplace parity check was re-run after
+each.
 
 ## Task 2 — Local release gates
 
@@ -45,10 +66,10 @@ loopback tokens, or local private paths.
 
 | Gate | Result | Evidence |
 |---|---|---|
-| Release SHA pushed | PASS | `b5167b29dddc1d02e9b629cab6a3079553b6d522` |
+| Release SHA pushed | PASS | content `b5167b2`, terminal head `78df10e` |
 | local HEAD == `origin/main` == `git ls-remote origin refs/heads/main` | PASS | all three identical |
-| GitHub Actions run targets that exact SHA | PASS | run `34829927327`, `headSha` matches |
-| `conclusion = success` | PASS | completed successfully in 18s |
+| GitHub Actions run targets that exact SHA | PASS | run `34829927327` (content) and `34830099503` (terminal head), each `headSha` matching |
+| `conclusion = success` | PASS | both runs completed successfully |
 | CI log shows 194 tests | PASS | `"tests_run": 194` |
 | CI log shows zero required skips | PASS | `"required_skips": 0` |
 | CI log shows TRACE 6/6 | PASS | `"trace": "6/6"` |
