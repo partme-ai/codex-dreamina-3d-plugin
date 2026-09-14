@@ -277,27 +277,27 @@ Commit: `feat: bind Dreamina 3D orchestration to Design MCP`
 - Produces: official-uploader commands only in a foreground Connector registry.
 - Consumes: approved video/output path policies and redacted audit projection.
 
-- [ ] **Step 1: Reconcile the dirty checkout**
+- [x] **Step 1: Reconcile the dirty checkout**
 
 Record every changed/untracked file and identify ownership. Do not stash, reset, checkout, delete, or overwrite the existing work. Continue only in an authorized clean integration context.
 
-- [ ] **Step 2: Write failing mode/path/privacy tests**
+- [x] **Step 2: Write failing mode/path/privacy tests**
 
 Assert managed/background mode exposes no official-uploader mutation commands; Connector mode does. Reject unapproved output/video paths and symlink escapes before touching `bpy.ops`. Assert audit entries contain hashes/status instead of Prompt, video path, output path, loopback token, or `thirdparty_id`.
 
-- [ ] **Step 3: Write failing real-version discovery tests**
+- [x] **Step 3: Write failing real-version discovery tests**
 
 Model Blender's actual `preferences.addons[name].module` string. Resolve `bl_info.version` through Blender's module registry without importing a bundled upstream copy. Reject unsupported official add-on and Blender versions.
 
-- [ ] **Step 4: Implement Connector-only delegation**
+- [x] **Step 4: Implement Connector-only delegation**
 
 Pass `runtime_mode="managed"|"connector"` into registry construction. Register `official_uploader.render_and_link`, `link_existing`, and `open_link` only for Connector. Apply canonical approved-root policies before assigning scene properties.
 
-- [ ] **Step 5: Implement audit projection**
+- [x] **Step 5: Implement audit projection**
 
 Record only command, request ID, result status, official task state, link origin, input SHA-256, and error category. Never persist raw Prompt/path/URL/token values.
 
-- [ ] **Step 6: Run focused and full tests**
+- [x] **Step 6: Run focused and full tests**
 
 Run:
 
@@ -306,7 +306,7 @@ Run:
 /usr/local/bin/python3 -m unittest discover -s tests
 ```
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 Commit: `fix: enforce Connector-only official uploader boundaries`
 
@@ -387,7 +387,7 @@ From the public installed `codex-dreamina-design` version, initialize MCP and ca
 
 Attempt the exact automatic request through `dreamina_submit_video`, choose Cancel in the native dialog, and assert zero new submit IDs and unchanged task history.
 
-- [ ] **Step 4: Exercise one approved paid path only when separately authorized**
+- [x] **Step 4: Exercise one approved paid path only when separately authorized**
 
 Use minimum Seedance 2.5 resolution/duration. Persist the one submit ID, interrupt after acceptance, restart the orchestrator, query the same ID to terminal state, download, ffprobe, and independently hash. Do not reuse historical CLI-only canary evidence for this MCP gate.
 
@@ -399,7 +399,7 @@ If the user-installed official add-on is present and enabled, run one foreground
 
 The evidence table must separately record `PreviewValidated`, `JimengLinkReady`, `Submitted`, `Querying`, and `Completed`. No earlier state may satisfy a later gate.
 
-- [ ] **Step 7: Commit runtime evidence**
+- [x] **Step 7: Commit runtime evidence**
 
 Commit: `test: record Dreamina 3D production runtime acceptance`
 

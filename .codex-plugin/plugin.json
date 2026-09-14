@@ -1,6 +1,6 @@
 {
   "name": "codex-dreamina-3d",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Orchestrate validated Blender previews into verified Dreamina Seedance videos.",
   "author": {"name": "Full Stack Skills / PartMe.AI", "url": "https://github.com/partme-ai"},
   "homepage": "https://github.com/partme-ai/codex-dreamina-3d-plugin",

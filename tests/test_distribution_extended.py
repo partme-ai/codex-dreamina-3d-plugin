@@ -148,10 +148,10 @@ class VersionContractTests(unittest.TestCase):
     def test_repo_declares_strict_semver_base(self) -> None:
         import json
         version = json.loads((ROOT / ".codex-plugin" / "plugin.json").read_text())["version"]
-        self.assertEqual(version, "0.2.0")
+        self.assertEqual(version, "0.3.0")
 
     def test_cachebuster_version_is_accepted(self) -> None:
-        errors = self._validate_with_version("0.2.0+codex.20260912062630")
+        errors = self._validate_with_version("0.3.0+codex.20260914090000")
         self.assertEqual(errors, [], errors)
 
     def test_non_semver_version_is_rejected(self) -> None:
@@ -159,7 +159,7 @@ class VersionContractTests(unittest.TestCase):
         self.assertTrue(any("strict semver" in e for e in errors), errors)
 
     def test_wrong_base_version_is_rejected(self) -> None:
-        errors = self._validate_with_version("0.3.0")
+        errors = self._validate_with_version("0.2.0")
         self.assertTrue(any("base version" in e for e in errors), errors)
 
 

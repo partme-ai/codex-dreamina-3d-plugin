@@ -11,6 +11,7 @@ Dreamina (Seedance 2.5) half of the Dreamina 3D pipeline.
 | `codex_dreamina_design_receipt_roundtrip`       | `PASS` (fixture)  | Fake Design adapter exercises capabilities/quote/approve/submit/query/download |
 | `dreamina_mcp_read_only`                        | `PASS`            | Installed MCP 0.3.0 initialized; trusted CLI and account readiness returned |
 | `dreamina_mcp_native_deny`                      | `PASS`            | Cancel returned `ApprovalDeniedError`; no operation or submit ID was created |
+| `dreamina_mcp_paid_canary`                      | `PASS`            | One 54-credit submit; restart/query-only/download/hash acceptance passed |
 
 ## Paid canary evidence
 
@@ -73,3 +74,7 @@ a re-hashed final artifact, not on the design adapter's "succeeded"
 report alone. The orchestrator queries, downloads, re-hashes, and only
 then transitions the job to `Completed`. A failed re-hash transitions
 the job to `Failed` with `error_category='artifact_mismatch'`.
+
+Fresh MCP canary: submit ID `6fd79b95-9b02-4d05-a14d-801001cca136`, one
+submission, 54 credits, final SHA-256
+`fa7b542c404bda2bfc2facbc2eecd79f028d6e91e08c6ab09fda18fa615335e0`.

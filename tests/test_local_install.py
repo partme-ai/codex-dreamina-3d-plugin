@@ -142,22 +142,22 @@ class CachebusterTests(unittest.TestCase):
 
     def test_cachebuster_appends_codex_suffix(self) -> None:
         version = local_install.bump_cachebuster(self.plugin_dir, "local-20260912-120000")
-        self.assertEqual(version, "0.2.0+codex.local-20260912-120000")
+        self.assertEqual(version, "0.3.0+codex.local-20260912-120000")
         self.assertEqual(self._version(), version)
 
     def test_cachebuster_replaces_existing_token(self) -> None:
         local_install.bump_cachebuster(self.plugin_dir, "local-first")
         version = local_install.bump_cachebuster(self.plugin_dir, "local-second")
-        self.assertEqual(version, "0.2.0+codex.local-second")
+        self.assertEqual(version, "0.3.0+codex.local-second")
         self.assertEqual(self._version().count("+"), 1)
 
     def test_cachebuster_default_token_is_timestamped(self) -> None:
         version = local_install.bump_cachebuster(self.plugin_dir)
-        self.assertTrue(version.startswith("0.2.0+codex.local-"), version)
+        self.assertTrue(version.startswith("0.3.0+codex.local-"), version)
 
     def test_cachebuster_version_remains_strict_semver(self) -> None:
         version = local_install.bump_cachebuster(self.plugin_dir, "abc")
-        self.assertRegex(version, r"^0\.2\.0\+[0-9A-Za-z.-]+$")
+        self.assertRegex(version, r"^0\.3\.0\+[0-9A-Za-z.-]+$")
 
     def test_cachebuster_preserves_prerelease_base(self) -> None:
         manifest_path = self.plugin_dir / ".codex-plugin" / "plugin.json"

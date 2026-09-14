@@ -24,7 +24,7 @@ class StrictGateTests(unittest.TestCase):
     def test_disposable_install_has_source_parity(self):
         with tempfile.TemporaryDirectory() as tmp:
             receipt = ci_gate.verify_disposable_install(ROOT, Path(tmp))
-        self.assertEqual(receipt["version"], "0.2.0")
+        self.assertEqual(receipt["version"], "0.3.0")
         self.assertGreater(receipt["files_verified"], 10)
         self.assertTrue(receipt["parity"])
 

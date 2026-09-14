@@ -22,13 +22,13 @@ jobs:
         uses: actions/checkout@v7
         with:
           repository: partme-ai/codex-blender-plugin
-          ref: caf835c64787abc4cf113a494218dceb5f256ede
+          ref: e2f6f0252f55dd99c384dd1710ebbede1c1bcd7e
           path: companions/codex-blender-plugin
       - name: Checkout pinned Dreamina Design companion
         uses: actions/checkout@v7
         with:
           repository: partme-ai/codex-dreamina-design-plugin
-          ref: 897f6cbbb4a002f7b0a5559385604c2a13b7cac9
+          ref: 06d1fc5dc97744bb0482fbb8088af564e0eec27c
           path: companions/codex-dreamina-design-plugin
       - uses: actions/setup-python@v7
         with:

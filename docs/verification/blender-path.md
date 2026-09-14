@@ -8,7 +8,7 @@ Blender half of the Dreamina 3D pipeline.
 | Gate                                            | Status            | Reason                                                            |
 |-------------------------------------------------|-------------------|--------------------------------------------------------------------|
 | `local_blender_runtime`                         | `PASS`            | Fresh managed Harness + installed implementation produced and validated MP4 |
-| `public_blender_adapter_entry`                  | `FAIL`            | 0.2.0 `bin/blender_adapter` imports a missing module |
+| `public_blender_adapter_entry`                  | `PASS`            | Refreshed 0.3.0 cache at GitHub `e2f6f02` starts successfully |
 | `codex_blender_receipt_recorded`                | `PASS` (fixture)  | Validated via the fake Blender adapter (`tests/fakes/fake_blender_adapter.py`) |
 | `blender_to_design_receipt_chain`               | `PASS` (fixture)  | Fake Design adapter accepted the preview receipt without a network call |
 
@@ -55,9 +55,9 @@ The receipt declared 104428 bytes and SHA-256
 `b8b5b7607d29b4ac02da83117078b491badd22e0a81e995aa09c0402e18847bb`;
 ffprobe and the orchestrator independently confirmed those values.
 
-The public `bin/blender_adapter` entry still imports a missing
-`scripts/blender_adapter.py`, so distribution readiness remains blocked until
-the entry is corrected and the installed-cache path is re-run.
+The public entry was corrected to import the shipped implementation, pushed as
+Blender commit `e2f6f02`, refreshed from the public marketplace, and its
+installed-cache `--help` invocation passed at the exact same Git SHA.
 
 ## Determinism guarantees preserved
 

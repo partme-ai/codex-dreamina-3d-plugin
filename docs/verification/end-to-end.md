@@ -10,12 +10,12 @@ Dreamina 3D pipeline.
 | `fixture_blender_to_design_e2e`                   | `PASS` (fixture)  | Driven by fake Blender + fake Design adapters         |
 | `fixture_maya_to_design_e2e`                      | `PASS` (fixture)  | Driven by fake Maya + fake Design adapters            |
 | `real_blender_preview_handoff`                    | `PASS`            | Managed Blender 5.2.1 + installed implementation; receipt re-hash passed |
-| `public_blender_adapter_entry`                    | `FAIL`            | Installed 0.2.0 bin entry imports a missing module |
-| `real_blender_to_design_e2e`                      | `NOT_RUN`         | Dreamina Design submission was outside this authorization |
+| `public_blender_adapter_entry`                    | `PASS`            | Refreshed 0.3.0 cache matches GitHub `e2f6f02` |
+| `real_blender_to_design_e2e`                      | `PASS`            | One MCP submit, restart/query-only, verified download |
 | `real_maya_to_design_e2e`                         | `NOT_RUN`         | No real Maya install or callable companion adapter   |
 | `real_blender_to_seedance_cli_e2e`                | `PASS`            | Authorized Seedance 2.5 canary passed artifact verification |
 | `paid_seedance_canary`                            | `PASS`            | One submission, 54 task-attributed credits, no resubmit |
-| `design_handoff_adapter_e2e`                      | `NOT_RUN`         | Real six-mode Design adapter executable is not published |
+| `dreamina_design_mcp_e2e`                         | `PASS`            | Installed MCP handled approval, submit, query and download |
 
 ## End-to-end completion contract
 
