@@ -10,8 +10,34 @@ Dreamina (Seedance 2.5) half of the Dreamina 3D pipeline.
 | `paid_seedance_canary`                          | `PASS`            | Authorized Seedance 2.5 480p/4s canary reached success and downloaded |
 | `codex_dreamina_design_receipt_roundtrip`       | `PASS` (fixture)  | Fake Design adapter exercises capabilities/quote/approve/submit/query/download |
 | `dreamina_mcp_read_only`                        | `PASS`            | Installed MCP 0.3.0 initialized; trusted CLI and account readiness returned |
-| `dreamina_mcp_native_deny`                      | `PASS`            | Cancel returned `ApprovalDeniedError`; no operation or submit ID was created |
+| `dreamina_mcp_native_deny`                      | `PASS` (recorded) | Cancel returned `ApprovalDeniedError`; no operation or submit ID was created. **Not re-verified on 2026-09-14** — see below |
 | `dreamina_mcp_paid_canary`                      | `PASS`            | One 54-credit submit; restart/query-only/download/hash acceptance passed |
+
+## Re-verification attempt for `dreamina_mcp_native_deny` (2026-09-14)
+
+An attempt was made to reproduce this gate rather than leave it as a record. It
+did **not** succeed, so the gate remains a record.
+
+Two obstacles, both environmental:
+
+1. Answering the dialog needs either Screen Recording (to see it) or
+   Accessibility (to press Escape). Neither is granted to this agent, so
+   `System Events` refused the keystroke outright — it returned
+   `"osascript" 不允许发送按键`. The Cancel button could not be pressed.
+2. The probe request never reached the dialog anyway: it omitted `model`, and the
+   server refused it earlier with `UnsupportedCapabilityError: unknown model:
+   None`. The unchanged operation ledger from that attempt therefore proves
+   nothing about cancellation; it only shows an invalid request is refused
+   before any approval is requested.
+
+The fail-closed behaviour itself is covered by tests: a denied or unavailable
+native dialog raises `ApprovalDeniedError`, and `scripts/native_approval.py`
+raises it for a dialog that is dismissed or times out — `cancel button` is the
+default and `giving up after 300` denies. What remains unverified is the
+end-to-end path with a human pressing Cancel.
+
+To close it, an operator with a desktop session should run the submit, press
+Cancel, and confirm the operation ledger gained no entry.
 
 ## Paid canary evidence
 
