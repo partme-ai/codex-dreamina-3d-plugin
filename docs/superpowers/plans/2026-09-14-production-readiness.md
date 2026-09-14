@@ -437,21 +437,30 @@ Manifest is `0.3.0` (set in `bbb3862`) and consistent across `validate_distribut
 
 Verify local HEAD, tracking SHA, and `git ls-remote origin refs/heads/main` are identical after push.
 
-- [ ] **Step 5: Wait for terminal GitHub CI**
+- [x] **Step 5: Wait for terminal GitHub CI**
 
 The run must target the exact release SHA and complete successfully with zero required skips. An earlier green run is not evidence.
 
-- [ ] **Step 6: Refresh public Marketplace installation**
+Run [`34829927327`](https://github.com/partme-ai/codex-dreamina-3d-plugin/actions/runs/34829927327) targets `b5167b29dddc1d02e9b629cab6a3079553b6d522` with `conclusion=success`; its log shows 194 tests, `required_skips: 0`, TRACE 6/6, version 0.3.0 and parity true.
+
+- [x] **Step 6: Refresh public Marketplace installation**
 
 Upgrade the configured public marketplace, install/upgrade `codex-dreamina-3d`, and verify the cache reports `0.3.0`. Compare manifest, Skills, schemas and scripts byte-for-byte against the remote release checkout.
 
-- [ ] **Step 7: Run fresh-task discovery and read-only smoke**
+`partme-ai-dreamina-3d` points at the public GitHub URL, the plugin reports `installed, enabled` at `0.3.0`, and the source/installed comparison shows 23 files with 0 missing, 0 extra and 0 mismatched.
+
+- [x] **Step 7: Run fresh-task discovery and read-only smoke**
 
 In a fresh Codex task, verify the three entry Skills are discovered, Dreamina Design MCP initializes, Blender preview capability is visible, and optional Jimeng Web availability is reported honestly.
 
-- [ ] **Step 8: Record the final verdict**
+Verified from the installed snapshot: all 6 Skills are discovered by a process with no prior state, Dreamina Design MCP initializes at `0.3.0`, `dreamina_cli_status` and `dreamina_account` answer read-only, Blender 5.2.1 LTS is present and the public adapter `--help` succeeds, the official uploader is probed but not installed, and the router reports `jimeng_web=OPTIONAL_UNAVAILABLE`. The interactive "open a new conversation" step itself is left to the operator.
+
+- [x] **Step 8: Record the final verdict**
 
 Mark production-ready only when Tasks 1–8 pass. If the optional official uploader is absent, the release may be production-ready for `preview_only` and `auto_seedance` while `jimeng_web` remains explicitly unavailable. Maya and Windows remain outside the release claim.
+
+Tasks 1–8 pass. Verdict and the full evidence table are in
+[`production-release-2026-09-14.md`](../../verification/production-release-2026-09-14.md).
 
 ## Completion Gate
 
