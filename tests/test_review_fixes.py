@@ -143,11 +143,21 @@ class ProducerVersionContractTests(unittest.TestCase):
 
     def test_range_covers_the_companion_manifest_version(self) -> None:
         """Guard against future drift: the sibling plugin's declared version
-        must fall inside the range this plugin accepts."""
-        companion = ROOT.parent / "codex-blender-plugin" / ".codex-plugin" / "plugin.json"
-        if not companion.is_file():
-            self.skipTest("codex-blender companion checkout not present")
-        published = json.loads(companion.read_text())["version"]
+        must fall inside the range this plugin accepts.
+
+        The companion checkout is located the same way CI and the other
+        companion tests locate it, so this never skips in the strict gate.
+        """
+        companion_root = Path(
+            os.environ.get("CODEX_BLENDER_REPO", ROOT.parent / "codex-blender-plugin")
+        )
+        manifest = companion_root / ".codex-plugin" / "plugin.json"
+        self.assertTrue(
+            manifest.is_file(),
+            f"codex-blender companion manifest not found at {manifest}; "
+            "set CODEX_BLENDER_REPO to the companion checkout",
+        )
+        published = json.loads(manifest.read_text())["version"]
         from handoff_validator import compatible_producer
 
         self.assertTrue(
