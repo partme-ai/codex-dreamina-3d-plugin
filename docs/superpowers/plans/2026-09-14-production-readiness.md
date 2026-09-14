@@ -433,7 +433,9 @@ Set Dreamina 3D to `0.3.0`. Update exact version tests and validators. Do not us
 
 Manifest is `0.3.0` (set in `bbb3862`) and consistent across `validate_distribution.py`, `test_distribution.py`, `test_ci_gate.py` and `ci_gate.py`. No cachebuster suffix is used as the public release version.
 
-- [ ] **Step 4: Commit and push without rewriting history**
+- [x] **Step 4: Commit and push without rewriting history**
+
+No history rewrite was performed. At the release tip, local HEAD, `origin/main`, and `git ls-remote origin refs/heads/main` all reported `26858506dc8ddc90907f26587a38291e8c2821f6`.
 
 Verify local HEAD, tracking SHA, and `git ls-remote origin refs/heads/main` are identical after push.
 
