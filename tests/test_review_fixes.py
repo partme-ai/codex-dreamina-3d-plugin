@@ -115,6 +115,153 @@ class ArtifactContainmentTests(unittest.TestCase):
             self.assertEqual(result["sha256"], digest)
 
 
+class ProducerVersionContractTests(unittest.TestCase):
+    """The validator must accept the version the published companion actually
+    emits, and only that published series."""
+
+    def test_blender_published_version_is_accepted(self) -> None:
+        """codex-blender's adapter emits producer_version 0.3.0; a range that
+        stops at 0.2.99 rejects every current receipt."""
+        from handoff_validator import compatible_producer
+
+        for version in ("0.1.0", "0.2.0", "0.3.0"):
+            self.assertTrue(
+                compatible_producer("codex-blender", version),
+                f"codex-blender {version} must be accepted",
+            )
+
+    def test_unpublished_newer_version_is_rejected(self) -> None:
+        from handoff_validator import compatible_producer
+
+        self.assertFalse(compatible_producer("codex-blender", "0.4.0"))
+
+    def test_maya_stays_within_its_published_series(self) -> None:
+        from handoff_validator import compatible_producer
+
+        self.assertTrue(compatible_producer("codex-maya", "0.1.0"))
+        self.assertFalse(compatible_producer("codex-maya", "0.3.0"))
+
+    def test_range_covers_the_companion_manifest_version(self) -> None:
+        """Guard against future drift: the sibling plugin's declared version
+        must fall inside the range this plugin accepts."""
+        companion = ROOT.parent / "codex-blender-plugin" / ".codex-plugin" / "plugin.json"
+        if not companion.is_file():
+            self.skipTest("codex-blender companion checkout not present")
+        published = json.loads(companion.read_text())["version"]
+        from handoff_validator import compatible_producer
+
+        self.assertTrue(
+            compatible_producer("codex-blender", published),
+            f"companion publishes {published} but the validator rejects it",
+        )
+
+
+class PolicyDownloadRootTests(unittest.TestCase):
+    """The containment defense must be reachable through normal policy
+    construction, not only when a caller passes approved_roots by hand."""
+
+    def test_factories_propagate_download_root(self) -> None:
+        from job_ledger import ExecutionPolicy
+
+        budget = ExecutionPolicy.auto_with_budget(
+            "1.0", permit_one_submission=True, permit_reference_upload=True,
+            download_root="/approved/out",
+        )
+        exact = ExecutionPolicy.auto_exact_request(
+            permit_one_submission=True, permit_reference_upload=True,
+            download_root="/approved/out",
+        )
+        self.assertEqual(budget.download_root, "/approved/out")
+        self.assertEqual(exact.download_root, "/approved/out")
+        self.assertEqual(budget.to_dict()["download_root"], "/approved/out")
+        self.assertEqual(exact.to_dict()["download_root"], "/approved/out")
+
+    def test_factories_default_download_root_to_none(self) -> None:
+        from job_ledger import ExecutionPolicy
+
+        policy = ExecutionPolicy.auto_exact_request(
+            permit_one_submission=True, permit_reference_upload=True
+        )
+        self.assertIsNone(policy.download_root)
+
+    def test_orchestrator_rejects_artifact_outside_policy_download_root(self) -> None:
+        """End-to-end: an artifact the MCP points outside the policy's approved
+        download root must fail the job, proving the defense is live."""
+        import hashlib as _hl
+        from auto_orchestrator import run_until_blocked
+        from job_ledger import ExecutionPolicy
+
+        with tempfile.TemporaryDirectory() as tmp:
+            approved = Path(tmp) / "approved"
+            approved.mkdir()
+            outside = Path(tmp) / "outside.mp4"
+            payload = b"PLANTED_ELSEWHERE"
+            outside.write_bytes(payload)
+            digest = _hl.sha256(payload).hexdigest()
+
+            class Client:
+                def invoke(self, action, arguments):
+                    if action == "status":
+                        return {"ready": True}
+                    if action == "account":
+                        return {"ready": True}
+                    if action == "quote":
+                        return {"quote_available": False}
+                    if action == "submit":
+                        return {"submit_id": "ds_1"}
+                    if action == "query":
+                        return {
+                            "status": "succeeded",
+                            "artifact": {"path": str(outside), "sha256": digest},
+                        }
+                    raise AssertionError(action)
+
+            ledger = JobLedger(Path(tmp) / "job.json")
+            ledger.write(new_job(
+                "job-root",
+                ExecutionPolicy.auto_exact_request(
+                    permit_one_submission=True,
+                    permit_reference_upload=True,
+                    download_root=str(approved),
+                ),
+            ))
+            preview = Path(tmp) / "preview.mp4"
+            preview.write_bytes(b"\x00\x00\x00\x18ftypisom")
+            preview_sha = _hl.sha256(preview.read_bytes()).hexdigest()
+            receipt = {
+                "schema_version": "1.0.0",
+                "producer_plugin": "codex-blender",
+                "producer_version": "0.3.0",
+                "artifact_id": "blender_e2e",
+                "path": str(preview),
+                "sha256": preview_sha,
+                "codec": "h264",
+                "container": "mp4",
+                "dimensions": {"width": 1280, "height": 720},
+                "fps": 24.0,
+                "duration_seconds": 4.0,
+                "bytes": preview.stat().st_size,
+                "camera": {"name": "Camera"},
+                "frame_range": {"start": 1, "end": 96},
+                "preview_mode": "camera_render",
+                "restoration": {"status": "confirmed"},
+            }
+            result = run_until_blocked(
+                ledger,
+                Client(),
+                preview_receipt=receipt,
+                request={
+                    "prompt": "orbit",
+                    "model": "seedance2.5",
+                    "resolution": "720p",
+                    "ratio": "16:9",
+                    "duration_seconds": 4,
+                },
+            )
+            self.assertEqual(result.blocked_reason, "FINAL_ARTIFACT_INVALID")
+            self.assertEqual(ledger.read()["state"], JobState.FAILED.value)
+
+
 class McpArtifactTests(unittest.TestCase):
     """The MCP client must surface an unexpected artifact count."""
 

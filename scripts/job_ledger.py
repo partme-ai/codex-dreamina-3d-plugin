@@ -109,6 +109,7 @@ class ExecutionPolicy:
         permit_one_submission: bool,
         permit_reference_upload: bool,
         permit_unquoted_exact_request: bool = False,
+        download_root: str | None = None,
     ) -> "ExecutionPolicy":
         try:
             amount = Decimal(str(max_charge))
@@ -124,6 +125,7 @@ class ExecutionPolicy:
             permit_one_submission=True,
             permit_reference_upload=bool(permit_reference_upload),
             permit_unquoted_exact_request=bool(permit_unquoted_exact_request),
+            download_root=download_root,
         )
 
     @classmethod
@@ -132,6 +134,7 @@ class ExecutionPolicy:
         *,
         permit_one_submission: bool,
         permit_reference_upload: bool,
+        download_root: str | None = None,
     ) -> "ExecutionPolicy":
         """Authorize one exact request when the provider has no quote API."""
         if not permit_one_submission:
@@ -142,6 +145,7 @@ class ExecutionPolicy:
             permit_one_submission=True,
             permit_reference_upload=bool(permit_reference_upload),
             permit_unquoted_exact_request=True,
+            download_root=download_root,
         )
 
     def to_dict(self) -> dict[str, Any]:

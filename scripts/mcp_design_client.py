@@ -66,13 +66,15 @@ def _artifact(payload: Mapping[str, Any]) -> dict[str, Any] | None:
         )
     item = artifacts[0]
     if not isinstance(item, Mapping):
-        return None
+        raise McpToolError("Dreamina Design returned a non-object artifact entry")
     path = item.get("path", item.get("local_path"))
     checksum = item.get("sha256")
     if checksum is None and isinstance(item.get("checksum"), Mapping):
         checksum = item["checksum"].get("digest")
-    if not isinstance(path, str) or not isinstance(checksum, str):
-        return None
+    if not isinstance(path, str) or not path:
+        raise McpToolError("Dreamina Design artifact is missing a path")
+    if not isinstance(checksum, str) or not checksum:
+        raise McpToolError("Dreamina Design artifact is missing a sha256 digest")
     result: dict[str, Any] = {"path": path, "sha256": checksum}
     size = item.get("size_bytes", item.get("bytes"))
     if size is not None:
