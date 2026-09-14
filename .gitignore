@@ -15,3 +15,11 @@ dist/
 tests/fakes/.*.sh
 tests/fakes/*.sh
 
+# Generated media must never enter the distribution. Runtime acceptance
+# records the reproduction procedure and the artifact digest instead.
+*.mp4
+*.mov
+*.mkv
+*.webm
+*.wav
+*.m4a
