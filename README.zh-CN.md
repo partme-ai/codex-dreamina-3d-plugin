@@ -1,5 +1,7 @@
 # Codex Dreamina 3D 插件
 
+![Codex × Dreamina 3D — 将已验证场景转化为电影级 3D](assets/dreamina-3d-hero.png)
+
 <img src="assets/logo.png" alt="Dreamina 3D Logo" width="128">
 
 > 面向生产的 Blender 到 Dreamina 3D 编排插件。

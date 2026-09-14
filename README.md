@@ -1,5 +1,7 @@
 # Codex Dreamina 3D Plugin
 
+![Codex × Dreamina 3D — Turn validated scenes into cinematic 3D](assets/dreamina-3d-hero.png)
+
 <img src="assets/logo.png" alt="Dreamina 3D logo" width="128">
 
 > Production-oriented Blender-to-Dreamina 3D orchestration.
