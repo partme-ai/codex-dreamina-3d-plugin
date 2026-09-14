@@ -166,7 +166,17 @@ class JobState(str, Enum):
 - [x] Validate `codex-blender` fixture path without Dreamina and record its receipt.
 - [x] Validate `codex-maya` fixture path without Dreamina and record its receipt.
 - [x] Validate both receipts through this plugin using fake `codex-dreamina-design`; no network or credits.
-- [ ] With explicit runtime authorization, run one local Blender and one local Maya path; keep unsupported environments blocked rather than inferred.
+- [x] With explicit runtime authorization, run one local Blender and one local Maya path; keep unsupported environments blocked rather than inferred.
+
+  Superseded by the 2026-09-14 production-readiness plan, which records the two
+  paths separately instead of inferring either:
+
+  - Blender: `local_blender_runtime = PASS` on Blender 5.2.1 LTS
+    ([`production-e2e-2026-09-14.md`](../../verification/production-e2e-2026-09-14.md),
+    [`blender-path.md`](../../verification/blender-path.md)).
+  - Maya: explicitly blocked, never inferred — no licensed Maya runtime is
+    present, recorded as a blocker in [`maya-path.md`](../../verification/maya-path.md)
+    and excluded from the release claim.
 - [x] With separate action-time approval, run at most one low-cost Seedance canary; otherwise record `paidCanary=NOT_RUN`.
 - [x] Prove end-to-end completion requires a validated final artifact, not HTTP/CLI success alone.
 - [x] Commit fixture/runtime-blocker evidence separately from offline evidence and stop for integration choice.

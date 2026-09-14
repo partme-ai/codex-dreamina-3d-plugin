@@ -1,6 +1,6 @@
 # Auto Execution Policy Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use `superpowers:executing-plans` to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use `superpowers:executing-plans` to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Execute an approved Blender-preview-to-Dreamina workflow automatically within one budget envelope while preserving quote caps, at-most-once submission, and final artifact verification.
 
@@ -39,7 +39,7 @@ class ExecutionPolicy:
 def new_job(job_id: str, execution_policy: ExecutionPolicy | None = None) -> dict: ...
 ```
 
-- [ ] **Step 1: Write failing ledger tests**
+- [x] **Step 1: Write failing ledger tests**
 
 ```python
 def test_auto_policy_rejects_quote_above_budget():
@@ -48,15 +48,15 @@ def test_auto_policy_rejects_quote_above_budget():
         ledger.record_quote(Decimal("3.21"))
 ```
 
-- [ ] **Step 2: Run the focused test and verify failure**
+- [x] **Step 2: Run the focused test and verify failure**
 
 Run: `python3 -m unittest tests.test_job_ledger -v`
 
-- [ ] **Step 3: Implement envelope parsing and schema validation**
+- [x] **Step 3: Implement envelope parsing and schema validation**
 
 Store only non-secret policy fields. Reject malformed money, negative caps, automatic mode without one-submission permission, and attempts to change the envelope after quote creation.
 
-- [ ] **Step 4: Run focused tests**
+- [x] **Step 4: Run focused tests**
 
 Run: `python3 -m unittest tests.test_job_ledger -v`
 
@@ -77,19 +77,19 @@ def run_until_blocked(
 ) -> dict: ...
 ```
 
-- [ ] **Step 1: Write failing workflow tests**
+- [x] **Step 1: Write failing workflow tests**
 
 Cover: below-cap quote submits once then completes; above-cap quote stops at `Quoted`; missing upload permission stops before submission; `Unknown` performs query only; final hash mismatch becomes `Failed`.
 
-- [ ] **Step 2: Run the focused test and verify failure**
+- [x] **Step 2: Run the focused test and verify failure**
 
 Run: `python3 -m unittest tests.test_auto_orchestrator -v`
 
-- [ ] **Step 3: Implement legal ledger progression**
+- [x] **Step 3: Implement legal ledger progression**
 
 Use existing `design_handoff` and `handoff_validator` boundaries. Persist the first `design_submit_id` before polling. Do not call `submit` from `Submitted`, `Querying`, or `Unknown`.
 
-- [ ] **Step 4: Run focused workflow tests**
+- [x] **Step 4: Run focused workflow tests**
 
 Run: `python3 -m unittest tests.test_auto_orchestrator tests.test_design_handoff -v`
 
@@ -101,18 +101,18 @@ Run: `python3 -m unittest tests.test_auto_orchestrator tests.test_design_handoff
 - Modify: `docs/verification/end-to-end.md`
 - Test: `tests/test_skills.py`
 
-- [ ] **Step 1: Write failing Skill assertions**
+- [x] **Step 1: Write failing Skill assertions**
 
 Assert `auto_with_budget` describes one envelope, automatic query/download, cap stop, and no resubmit.
 
-- [ ] **Step 2: Run focused tests and verify failure**
+- [x] **Step 2: Run focused tests and verify failure**
 
 Run: `python3 -m unittest tests.test_skills -v`
 
-- [ ] **Step 3: Update routing language**
+- [x] **Step 3: Update routing language**
 
 Document that interactive review remains available while automatic policy presents one final report and only exceptions interrupt the run.
 
-- [ ] **Step 4: Run full validation**
+- [x] **Step 4: Run full validation**
 
 Run: `python3 -m unittest discover -s tests -v && python3 scripts/validate_distribution.py && git diff --check`
