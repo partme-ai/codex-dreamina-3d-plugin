@@ -1,5 +1,5 @@
 ---
-name: codex-dreamina-3d-from-maya
+name: dreamina-3d-from-maya
 description: Drive a Maya Playblast through the validated Dreamina 3D pipeline. Use when the user has a Maya scene and wants a Seedance 2.5 render from it.
 metadata:
   type: workflow
