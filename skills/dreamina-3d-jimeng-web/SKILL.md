@@ -1,5 +1,5 @@
 ---
-name: codex-dreamina-3d-jimeng-web
+name: dreamina-3d-jimeng-web
 description: Route a validated Blender preview or existing video through the user's official uploader into Jimeng Web without claiming Seedance completion.
 ---
 

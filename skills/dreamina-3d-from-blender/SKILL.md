@@ -1,5 +1,5 @@
 ---
-name: codex-dreamina-3d-from-blender
+name: dreamina-3d-from-blender
 description: Drive a Blender preview through the validated Dreamina 3D pipeline. Use when the user has a Blender scene and wants a Seedance 2.5 render from it.
 metadata:
   type: workflow

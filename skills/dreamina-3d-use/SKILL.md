@@ -1,5 +1,5 @@
 ---
-name: codex-dreamina-3d-use
+name: dreamina-3d-use
 description: Route a Dreamina 3D orchestration request to the right workflow. Use when the user wants to turn a DCC preview into a Dreamina render without naming the source DCC.
 metadata:
   type: router

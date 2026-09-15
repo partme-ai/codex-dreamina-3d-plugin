@@ -1,0 +1,28 @@
+{
+  "version": 1,
+  "sources": [
+    {
+      "package": "dreamina-skills",
+      "repo": "https://github.com/full-aigc-skills/dreamina-skills.git",
+      "ref": "v1.6.0",
+      "sha": "0358da3717b45d939d941016a6532df60b773206",
+      "skills": [
+        "dreamina-3d-use",
+        "dreamina-3d-from-blender",
+        "dreamina-3d-from-maya",
+        "dreamina-3d-auto-seedance",
+        "dreamina-3d-jimeng-web",
+        "dreamina-3d-resume"
+      ],
+      "dest": "skills/",
+      "sha256": {
+        "dreamina-3d-use": "6ba38d3493b49eb4afe3e9f8429453d0034e2487de4c01b2a564aec61180600e",
+        "dreamina-3d-from-blender": "feb0df48b23d33a66adc9a25fb570c88d091cfe9a23609f317a33cd1e4dd075f",
+        "dreamina-3d-from-maya": "c7149cb5499dc2e6038acd2cf7558e53612a418357540c32f52f30cf6370fb76",
+        "dreamina-3d-auto-seedance": "656cf447205862ecf4d7c19b8ada53981bd5e1c9d3e17eb14b89a3c2c5675d50",
+        "dreamina-3d-jimeng-web": "5a92806817e8c75af606532fdeee3cc5e696260c370b8ba8368ceb5a5b528f50",
+        "dreamina-3d-resume": "eee7d1cba27b97d754b1ec7aa7d1d32ea0ecb87940a6933df663182ef4163986"
+      }
+    }
+  ]
+}

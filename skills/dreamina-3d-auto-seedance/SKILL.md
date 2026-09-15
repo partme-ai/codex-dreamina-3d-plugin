@@ -1,5 +1,5 @@
 ---
-name: codex-dreamina-3d-auto-seedance
+name: dreamina-3d-auto-seedance
 description: Automatically turn a validated DCC preview into an approved Seedance video through Dreamina Design MCP, with submit-once recovery and verified download.
 ---
 
